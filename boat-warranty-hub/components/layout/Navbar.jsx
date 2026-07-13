@@ -59,7 +59,7 @@ export default function Navbar() {
               {label}
               {arrow && (
                 <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
             </Link>
@@ -81,8 +81,8 @@ export default function Navbar() {
         maxWidth: '340px',
       }}>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-          <circle cx="11" cy="11" r="7" stroke="#999" strokeWidth="2"/>
-          <path d="M20 20l-3-3" stroke="#999" strokeWidth="2" strokeLinecap="round"/>
+          <circle cx="11" cy="11" r="7" stroke="#999" strokeWidth="2" />
+          <path d="M20 20l-3-3" stroke="#999" strokeWidth="2" strokeLinecap="round" />
         </svg>
         <input
           type="text"
@@ -103,23 +103,23 @@ export default function Navbar() {
 
       {/* Right Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, marginLeft: 'auto' }}>
-        <Link href="/login" style={{
+        <Link href="/signup" style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           color: 'var(--gray-300)', fontSize: '0.8rem', fontWeight: 500,
           textDecoration: 'none', whiteSpace: 'nowrap',
         }}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2"/>
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
           Login / Sign up
         </Link>
 
         <Link href="/product" style={{ color: 'var(--gray-300)', display: 'flex', alignItems: 'center' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <path d="M16 10a4 4 0 01-8 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M16 10a4 4 0 01-8 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </Link>
 
@@ -132,10 +132,10 @@ export default function Navbar() {
           transition: 'background 0.2s',
         }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="3" width="8" height="8" rx="1" fill="white"/>
-            <rect x="13" y="3" width="8" height="8" rx="1" fill="white" opacity="0.7"/>
-            <rect x="3" y="13" width="8" height="8" rx="1" fill="white" opacity="0.7"/>
-            <rect x="13" y="13" width="8" height="8" rx="1" fill="white" opacity="0.5"/>
+            <rect x="3" y="3" width="8" height="8" rx="1" fill="white" />
+            <rect x="13" y="3" width="8" height="8" rx="1" fill="white" opacity="0.7" />
+            <rect x="3" y="13" width="8" height="8" rx="1" fill="white" opacity="0.7" />
+            <rect x="13" y="13" width="8" height="8" rx="1" fill="white" opacity="0.5" />
           </svg>
           Admin Dashboard
         </Link>
@@ -152,10 +152,10 @@ export default function Navbar() {
         textDecoration: 'none', flexShrink: 0,
       }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-          <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z" stroke="white" strokeWidth="2" strokeLinecap="round" />
+          <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" />
         </svg>
-        <span>Warranty<br/>Lookup</span>
+        <span>Warranty<br />Lookup</span>
       </Link>
     </nav>
   );
