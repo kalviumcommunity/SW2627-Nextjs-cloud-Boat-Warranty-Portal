@@ -3,14 +3,29 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { loginApi } from '../../../services/frontendAuth.service';
+
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Logic for next page will be added later
+    try {
+      const userData = await loginApi(email, password);
+      if (userData.role === 'ADMIN') {
+        localStorage.setItem('admin', JSON.stringify(userData));
+        router.push('/admin');
+      } else {
+        alert('Unauthorized: You do not have Admin privileges.');
+      }
+    } catch (error) {
+      console.error('Admin Login error:', error);
+      alert(error.message || 'Login failed');
+    }
   };
 
   return (
