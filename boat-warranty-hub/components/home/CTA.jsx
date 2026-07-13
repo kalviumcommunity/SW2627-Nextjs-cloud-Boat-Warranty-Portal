@@ -1,16 +1,19 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function CTA() {
+export default function CTA({ badgeType }) {
   const [serial, setSerial] = useState('');
   const [error, setError] = useState('');
+
+  const router = useRouter();
 
   const handleVerify = () => {
     if (serial.length < 9 || serial.length > 20) {
       setError('Please enter a valid serial number (9–20 characters).');
     } else {
       setError('');
-      alert(`Verifying warranty for: ${serial}`);
+      router.push(`/warranty-result?serial=${encodeURIComponent(serial)}`);
     }
   };
 
@@ -44,26 +47,49 @@ export default function CTA() {
             padding: '14px 16px',
             background: 'var(--white)',
           }}>
-            {/* Barcode Icon */}
-            <div style={{
-              flexShrink: 0,
-              background: 'var(--gray-100)',
-              borderRadius: '8px',
-              width: '44px',
-              height: '44px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="4" width="2" height="16" rx="0.5" fill="#555"/>
-                <rect x="7" y="4" width="1" height="16" rx="0.5" fill="#555"/>
-                <rect x="10" y="4" width="2" height="16" rx="0.5" fill="#555"/>
-                <rect x="14" y="4" width="1" height="16" rx="0.5" fill="#555"/>
-                <rect x="17" y="4" width="2" height="16" rx="0.5" fill="#555"/>
-                <rect x="21" y="4" width="1" height="16" rx="0.5" fill="#555"/>
-              </svg>
-            </div>
+            {/* Input Badge Icon */}
+            {badgeType === 'sn' ? (
+              <div style={{
+                flexShrink: 0,
+                background: 'rgba(232, 0, 29, 0.06)',
+                borderRadius: '8px',
+                width: '44px',
+                height: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1.5px solid rgba(232, 0, 29, 0.1)',
+              }}>
+                <span style={{
+                  color: 'var(--red)',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.5px',
+                }}>
+                  [SN]
+                </span>
+              </div>
+            ) : (
+              <div style={{
+                flexShrink: 0,
+                background: 'var(--gray-100)',
+                borderRadius: '8px',
+                width: '44px',
+                height: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="4" width="2" height="16" rx="0.5" fill="#555" />
+                  <rect x="7" y="4" width="1" height="16" rx="0.5" fill="#555" />
+                  <rect x="10" y="4" width="2" height="16" rx="0.5" fill="#555" />
+                  <rect x="14" y="4" width="1" height="16" rx="0.5" fill="#555" />
+                  <rect x="17" y="4" width="2" height="16" rx="0.5" fill="#555" />
+                  <rect x="21" y="4" width="1" height="16" rx="0.5" fill="#555" />
+                </svg>
+              </div>
+            )}
 
             {/* Text Inputs */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -96,9 +122,9 @@ export default function CTA() {
               style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', padding: '4px' }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="#aaa" strokeWidth="2"/>
-                <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="#aaa" strokeWidth="2" strokeLinecap="round"/>
-                <circle cx="12" cy="17" r="0.5" fill="#aaa" stroke="#aaa" strokeWidth="1"/>
+                <circle cx="12" cy="12" r="10" stroke="#aaa" strokeWidth="2" />
+                <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="#aaa" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="12" cy="17" r="0.5" fill="#aaa" stroke="#aaa" strokeWidth="1" />
               </svg>
             </button>
           </div>
@@ -137,7 +163,7 @@ export default function CTA() {
           >
             Verify Warranty
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>
@@ -159,9 +185,9 @@ export default function CTA() {
           fontSize: '0.78rem',
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="#888" strokeWidth="2"/>
-            <line x1="12" y1="8" x2="12" y2="12" stroke="#888" strokeWidth="2" strokeLinecap="round"/>
-            <circle cx="12" cy="16" r="0.5" fill="#888" stroke="#888" strokeWidth="1"/>
+            <circle cx="12" cy="12" r="10" stroke="#888" strokeWidth="2" />
+            <line x1="12" y1="8" x2="12" y2="12" stroke="#888" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="12" cy="16" r="0.5" fill="#888" stroke="#888" strokeWidth="1" />
           </svg>
           <span>You can find the serial number on the product box or on the product label.</span>
         </div>
