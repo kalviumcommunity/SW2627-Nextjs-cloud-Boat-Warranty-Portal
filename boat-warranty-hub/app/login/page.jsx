@@ -539,7 +539,7 @@ export default function LoginPage() {
               <p style={{ color: '#666666', fontSize: '0.92rem', margin: '0 0 14px' }}>
                 Don&apos;t have an account?
               </p>
-              <Link href="/login" style={{
+              <Link href="/signup" style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',

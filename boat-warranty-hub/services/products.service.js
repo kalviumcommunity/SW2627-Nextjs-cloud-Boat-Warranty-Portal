@@ -12,7 +12,7 @@ export async function addProduct(data){
         throw new Error("Product already exists");
     }
 
-    return await createProduct(data);
+    return await createProduct({...data, purchaseDate: new Date(data.purchaseDate), warrantyExpiry: new Date(data.warrantyExpiry)});
 }
 
 export async function getProductById(id){

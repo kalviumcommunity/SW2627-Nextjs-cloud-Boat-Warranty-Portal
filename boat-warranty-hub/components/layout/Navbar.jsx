@@ -103,7 +103,7 @@ export default function Navbar() {
 
       {/* Right Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, marginLeft: 'auto' }}>
-        <Link href="/login" style={{
+        <Link href="/signup" style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           color: 'var(--gray-300)', fontSize: '0.8rem', fontWeight: 500,
           textDecoration: 'none', whiteSpace: 'nowrap',

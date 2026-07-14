@@ -19,7 +19,7 @@ export async function registration(data){
 }
 
 
-export async function loginUser(email,password){
+export async function loginUser({email,password}){
 
     // console.log(email)
     // console.log(password)
