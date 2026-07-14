@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { addProduct, getAllProducts } from "../../../services/products.service";
+import { productSchema } from "../../../lib/validations";
 
 
 export async function GET(){
@@ -26,11 +27,20 @@ export async function GET(){
 }
 
 
-export async function POST(){
+export async function POST(request){
     try {
         const body = await request.json();
 
-        const product = await addProduct(body);
+        const validation = productSchema.safeParse(body);
+
+        if(!validation.success){
+            return NextResponse.json(
+                {success:false,message:"Validation failed",errors:validation.error.flatten().fieldErrors},
+                {status:400}
+            )
+        }
+
+        const product = await addProduct(validation.data);
 
         if(product.error){
             return NextResponse.json(
@@ -42,7 +52,7 @@ export async function POST(){
         }
 
         return NextResponse.json(
-            product,
+            {success:true,data:product},
             {
                 status:201
             }
@@ -51,7 +61,7 @@ export async function POST(){
         console.error(error);
 
         return NextResponse.json(
-            {error: "Failed to create the product"},
+            {success:false,message:"Failed to create product"},
             {status: 500}
         )
     }
