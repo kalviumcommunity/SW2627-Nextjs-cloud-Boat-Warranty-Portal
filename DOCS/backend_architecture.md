@@ -82,21 +82,20 @@ app/
 │   ├── upload.service.js
 │   └── dashboard.service.js
 │
-├── repositories/
+├── repositories/ (done)
 │   │
 │   ├── product.repository.js
 │   ├── repair.repository.js
 │   ├── warranty.repository.js
 │   └── user.repository.js
 │
-├── prisma/
+├── prisma/  (done)
 │   │
 │   ├── schema.prisma
 │   ├── seed.js
 │   └── migrations/
 │
-├── types/
-│   └── (optional if migrating to TS)
+│  
 │
 ├── logs/
 │

@@ -9,7 +9,7 @@ export async function addRepair(data){
     }
 
     if(!product.isActive){
-        throw new Error("Cannot create repair for an inaxctive product.")
+        throw new Error("Cannot create repair for an inactive product.")
     }
     return await createRepair(data);
 }

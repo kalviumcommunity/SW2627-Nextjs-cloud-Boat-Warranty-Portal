@@ -2,17 +2,13 @@ import { prisma } from  '@/lib/prisma';
 
 export async function findProductBySerialNumber(serialNumber){
     return await prisma.product.findUnique({
-        where:{
-            serialNumber,
-        }
+        where:{serialNumber}
     })
 }
 
 export async function findProductById(id) {
     return await prisma.product.findUnique({
-        where:{
-            id,
-        }
+        where:{id}
     })
 }
 
@@ -38,3 +34,29 @@ export async function deleteProduct(id) {
         where:{id},
     })
 }
+
+export async function countProducts() {
+    return prisma.product.count();
+}
+
+export async function countActiveProducts() {
+    return prisma.product.count({
+        where: {
+            isActive: true,
+            warrantyExpiry: {
+                gte: new Date()
+            }
+        }
+    });
+}
+
+export async function countExpiredProducts() {
+    return prisma.product.count({
+        where: {
+            isActive: true,
+            warrantyExpiry: {
+                lt: new Date()
+            }
+        }
+    });
+}   

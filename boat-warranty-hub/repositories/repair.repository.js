@@ -32,3 +32,19 @@ export async function deleteRepair(id){
         where:{id}
     })
 }
+
+export async function countRepairs() {
+    return prisma.repair.count();
+}
+
+export async function countPendingRepairs() {
+    return prisma.repair.count({
+        where: {repairStatus: "PENDING"}
+    });
+}
+
+export async function countCompletedRepairs() {
+    return prisma.repair.count({
+        where: {repairStatus: "COMPLETED"}
+    });
+}
