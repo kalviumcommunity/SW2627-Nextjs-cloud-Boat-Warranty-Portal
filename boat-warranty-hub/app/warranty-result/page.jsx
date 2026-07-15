@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import UserNavbar from '@/components/layout/UserNavbar';
+import Footer from '@/components/layout/Footer';
 
 // Mock warranty data keyed by serial number
 const warrantyDB = {
@@ -39,6 +40,21 @@ const defaultProduct = {
   placeOfPurchase: 'Online',
   invoiceRequired: 'No',
   image: '/boat_headphones.png',
+  coverageHighlights: [
+    'Manufacturing defects covered for 12 months',
+    'Original boAt spare parts used for repairs',
+    'Free service support at authorized centers',
+  ],
+  claimSteps: [
+    'Keep your purchase invoice and serial number ready.',
+    'Visit the nearest authorized service center or contact support.',
+    'Get your product inspected and repair process initiated.',
+  ],
+  faqs: [
+    { q: 'How long does warranty verification take?', a: 'Instantly. Your product details are verified as soon as you submit the serial number.' },
+    { q: 'Can I claim warranty without an invoice?', a: 'Invoice is preferred, but certain claims may still be supported with product proof and serial verification.' },
+    { q: 'What is not covered under warranty?', a: 'Physical damage, water damage, and wear-and-tear are not covered under manufacturing warranty.' },
+  ],
 };
 
 function WarrantyResultContent() {
@@ -50,6 +66,10 @@ function WarrantyResultContent() {
 
   const isActive = product.status === 'Active';
 
+  const coverageHighlights = product.coverageHighlights || [];
+  const claimSteps = product.claimSteps || [];
+  const faqs = product.faqs || [];
+
   return (
     <main style={{ background: '#f5f5f5', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <UserNavbar />
@@ -58,149 +78,261 @@ function WarrantyResultContent() {
       <div style={{
         background: '#fff',
         borderBottom: '1px solid #e8e8e8',
-        padding: '14px 40px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        padding: '14px 0',
       }}>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#888' }}>
-          <Link href="/home" style={{ color: '#888', textDecoration: 'none' }}>Home</Link>
-          <span>›</span>
-          <span>Warranty Lookup</span>
-          <span>›</span>
-          <span style={{ color: '#111', fontWeight: 600 }}>Product Details</span>
-        </nav>
-        <button
-          onClick={() => router.push('/home')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '8px',
-            border: '1.5px solid #e8001d', color: '#e8001d',
-            background: 'transparent', padding: '8px 18px',
-            borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600,
-            cursor: 'pointer', transition: 'all 0.2s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#e8001d'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#e8001d'; }}
-        >
-          ← Back to Search
-        </button>
+        <div style={{
+          maxWidth: '1600px',
+          margin: '0 auto',
+          padding: '0 40px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#888' }}>
+            <Link href="/home" style={{ color: '#888', textDecoration: 'none' }}>Home</Link>
+            <span>›</span>
+            <span>Warranty Lookup</span>
+            <span>›</span>
+            <span style={{ color: '#111', fontWeight: 600 }}>Product Details</span>
+          </nav>
+          <button
+            onClick={() => router.push('/home')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              border: '1.5px solid #e8001d', color: '#e8001d',
+              background: 'transparent', padding: '8px 18px',
+              borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600,
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#e8001d'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#e8001d'; }}
+          >
+            ← Back to Search
+          </button>
+        </div>
       </div>
 
-      <div style={{ maxWidth: '1120px', margin: '24px auto', padding: '0 16px' }}>
+      <div style={{ maxWidth: '1600px', margin: '32px auto', padding: '0 40px' }}>
 
-        <div style={{ background: '#fff', borderRadius: '24px', boxShadow: '0 24px 80px rgba(15, 23, 42, 0.08)', padding: '28px 28px 18px', marginBottom: '24px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px', alignItems: 'start' }}>
-            <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-              <div style={{ width: '240px', height: '240px', flexShrink: 0, borderRadius: '18px', overflow: 'hidden', background: '#f7f7f8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Image
-                  src={product.image}
-                  alt={product.productName}
-                  width={240}
-                  height={240}
-                  style={{ objectFit: 'contain', width: '100%', height: '100%' }}
-                />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px', flexWrap: 'wrap' }}>
-                  <h1 style={{ fontSize: '2rem', fontWeight: 900, color: '#111', margin: 0 }}>
-                    {product.productName}
-                  </h1>
-                  {isActive && (
-                    <span style={{
-                      background: '#ecfdf5', color: '#16a34a',
-                      fontSize: '0.82rem', fontWeight: 700,
-                      padding: '7px 16px', borderRadius: '999px',
-                      border: '1px solid #bbf7d0',
-                    }}>
-                      Active Warranty
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '14px' }}>
-                  {[
-                    { label: 'Serial Number', value: serial, copy: true },
-                    { label: 'Product Category', value: product.category },
-                    { label: 'Purchase Date', value: product.purchaseDate },
-                    { label: 'Warranty Start Date', value: product.warrantyStart },
-                    { label: 'Warranty Expiry Date', value: `${product.warrantyExpiry} (${product.daysLeft} days left)` },
-                    { label: 'Warranty Status', value: product.status },
-                  ].map((row, i) => (
-                    <div key={i} style={{ background: '#fafafa', borderRadius: '18px', padding: '18px', minHeight: '90px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 700 }}>{row.label}</span>
-                      <span style={{ fontSize: '0.98rem', fontWeight: 800, color: row.label === 'Warranty Status' ? (isActive ? '#16a34a' : '#dc2626') : '#111', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                        {row.value}
-                        {row.copy && (
-                          <button
-                            title="Copy serial number"
-                            onClick={() => navigator.clipboard.writeText(serial)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0 }}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="9" y="9" width="13" height="13" rx="2" />
-                              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                            </svg>
-                          </button>
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {/* Product Card Row */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', marginBottom: '24px',
+        }}>
+          {/* Left: Product Details */}
+          <div style={{
+            background: '#fff', borderRadius: '14px',
+            border: '1px solid #e8e8e8', padding: '28px',
+            display: 'flex', gap: '28px', alignItems: 'flex-start',
+          }}>
+            {/* Product Image */}
+            <div style={{
+              width: '240px', height: '240px', flexShrink: 0,
+              borderRadius: '14px', overflow: 'hidden',
+              background: '#f5f5f5', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Image
+                src={product.image}
+                alt={product.productName}
+                width={240}
+                height={240}
+                style={{ objectFit: 'contain', width: '100%', height: '100%' }}
+              />
             </div>
-            <div style={{ background: '#f4fffa', borderRadius: '22px', padding: '26px 22px', border: '1px solid #d1fae5', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '14px', minHeight: '240px' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: '#dcfce7', display: 'grid', placeItems: 'center' }}>
-                <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z" fill="#bbf7d0" stroke="#16a34a" strokeWidth="1.5" />
-                  <path d="M9 12l2 2 4-4" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+
+            {/* Product Info */}
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#111', margin: 0 }}>
+                  {product.productName}
+                </h1>
+                {isActive && (
+                  <span style={{
+                    background: '#e6f9f0', color: '#16a34a',
+                    fontSize: '0.78rem', fontWeight: 700,
+                    padding: '4px 12px', borderRadius: '20px',
+                    border: '1px solid #bbf7d0',
+                  }}>
+                    Active Warranty
+                  </span>
+                )}
               </div>
-              <p style={{ margin: 0, fontSize: '0.78rem', letterSpacing: '0.14em', color: '#4b5563', fontWeight: 700, textTransform: 'uppercase' }}>Your warranty is</p>
-              <p style={{ margin: 0, fontSize: '2rem', fontWeight: 900, color: '#16a34a' }}>{product.status.toUpperCase()}</p>
-              <p style={{ margin: 0, fontSize: '0.93rem', color: '#4b5563', lineHeight: 1.7 }}>Your product is protected under warranty.</p>
+
+              {[
+                { label: 'Serial Number', value: serial, copy: true },
+                { label: 'Product Category', value: product.category, bold: true },
+                { label: 'Purchase Date', value: product.purchaseDate, bold: true },
+                { label: 'Warranty Start Date', value: product.warrantyStart, bold: true },
+                {
+                  label: 'Warranty Expiry Date',
+                  value: (
+                    <span>
+                      {product.warrantyExpiry}{' '}
+                      <span style={{ color: '#e8001d', fontWeight: 600 }}>({product.daysLeft} days left)</span>
+                    </span>
+                  ),
+                  bold: true,
+                },
+                {
+                  label: 'Warranty Status',
+                  value: (
+                    <span style={{
+                      color: isActive ? '#16a34a' : '#dc2626',
+                      fontWeight: 600,
+                    }}>
+                      {product.status}
+                    </span>
+                  ),
+                },
+              ].map((row, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center',
+                  padding: '10px 0',
+                  borderBottom: i < 5 ? '1px solid #f0f0f0' : 'none',
+                  gap: '24px',
+                }}>
+                  <span style={{ width: '180px', flexShrink: 0, fontSize: '0.88rem', color: '#888' }}>
+                    {row.label}
+                  </span>
+                  <span style={{ fontSize: '0.95rem', fontWeight: row.bold ? 700 : 400, color: '#111', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {row.value}
+                    {row.copy && (
+                      <button
+                        title="Copy serial number"
+                        onClick={() => navigator.clipboard.writeText(serial)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: 0 }}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" />
+                          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                        </svg>
+                      </button>
+                    )}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '18px', marginTop: '24px' }}>
-            {[
-              { label: 'Purchase Date', value: product.purchaseDate, icon: 'calendar' },
-              { label: 'Warranty Start Date', value: product.warrantyStart, icon: 'calendar' },
-              { label: 'Warranty Expiry Date', value: product.warrantyExpiry, icon: 'calendar' },
-              { label: 'Remaining Warranty', value: `${product.daysLeft} Days`, icon: 'clock' },
-            ].map((item, i) => (
-              <div key={i} style={{ background: '#fff', borderRadius: '18px', border: '1px solid #e8e8e8', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '16px', background: '#fee2e2', display: 'grid', placeItems: 'center', color: '#e11d48' }}>
-                  {item.icon === 'calendar' ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="4" width="18" height="18" rx="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" />
-                      <line x1="8" y1="2" x2="8" y2="6" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                  )}
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>{item.label}</p>
-                  <p style={{ margin: '6px 0 0', fontSize: '1rem', fontWeight: 800, color: '#111' }}>{item.value}</p>
-                </div>
-              </div>
-            ))}
+          {/* Right: Warranty Status Card */}
+          <div style={{
+            background: '#fff', borderRadius: '14px',
+            border: '1px solid #e8e8e8', padding: '28px',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            textAlign: 'center', gap: '12px',
+          }}>
+            {/* Shield Icon */}
+            <div style={{ marginBottom: '8px' }}>
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z"
+                  fill={isActive ? '#e6f9f0' : '#fef2f2'}
+                  stroke={isActive ? '#16a34a' : '#dc2626'}
+                  strokeWidth="1.5" />
+                <path d="M9 12l2 2 4-4"
+                  stroke={isActive ? '#16a34a' : '#dc2626'}
+                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#888', margin: 0, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>
+              YOUR WARRANTY IS
+            </p>
+            <p style={{
+              fontSize: '2rem', fontWeight: 900, margin: 0,
+              color: isActive ? '#16a34a' : '#dc2626',
+            }}>
+              {product.status.toUpperCase()}
+            </p>
+            <p style={{ fontSize: '0.82rem', color: '#666', margin: 0, lineHeight: 1.5 }}>
+              Your product is protected<br />under warranty.
+            </p>
           </div>
         </div>
 
+        {/* Timeline Row */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '20px', marginBottom: '24px',
+        }}>
+          {[
+            {
+              label: 'Purchase Date',
+              value: product.purchaseDate,
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              ),
+              highlight: false,
+            },
+            {
+              label: 'Warranty Start Date',
+              value: product.warrantyStart,
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                  <path d="M9 15l2 2 4-4" strokeLinecap="round" />
+                </svg>
+              ),
+              highlight: false,
+            },
+            {
+              label: 'Warranty Expiry Date',
+              value: product.warrantyExpiry,
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              ),
+              highlight: false,
+            },
+            {
+              label: 'Remaining Warranty',
+              value: `${product.daysLeft} Days`,
+              icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              ),
+              highlight: true,
+            },
+          ].map((item, i) => (
+            <div key={i} style={{
+              background: '#fff', borderRadius: '12px',
+              border: '1px solid #e8e8e8', padding: '20px 20px',
+              display: 'flex', alignItems: 'center', gap: '14px',
+            }}>
+              <div style={{ flexShrink: 0 }}>{item.icon}</div>
+              <div>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#888' }}>{item.label}</p>
+                <p style={{
+                  margin: '4px 0 0', fontSize: '1rem', fontWeight: 800,
+                  color: item.highlight ? '#e8001d' : '#111',
+                }}>
+                  {item.value}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Actions + Specs Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px', marginBottom: '20px' }}>
 
           {/* Left: Actions */}
-          <div style={{ background: '#fff', borderRadius: '24px', border: '1px solid #e8e8e8', padding: '28px', minHeight: '372px' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#111', margin: '0 0 22px' }}>
+          <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e8e8e8', padding: '28px' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#111', margin: '0 0 20px' }}>
               What would you like to do?
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '18px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
               {[
                 {
                   icon: (
@@ -214,6 +346,7 @@ function WarrantyResultContent() {
                   title: 'Download Warranty Certificate',
                   desc: 'Download your warranty certificate in PDF format.',
                   btnLabel: 'Download PDF',
+                  btnIcon: '↓',
                   primary: true,
                 },
                 {
@@ -225,7 +358,9 @@ function WarrantyResultContent() {
                   title: 'View Repair History',
                   desc: 'Check all the repairs and services done for this product.',
                   btnLabel: 'View Repair History',
+                  btnIcon: '→',
                   primary: false,
+                  onClick: () => router.push(`/repair?serial=${encodeURIComponent(serial)}`),
                 },
                 {
                   icon: (
@@ -237,21 +372,19 @@ function WarrantyResultContent() {
                   title: 'Need Help?',
                   desc: 'Contact our support team for any warranty related queries.',
                   btnLabel: 'Contact Support',
+                  btnIcon: '→',
                   primary: false,
                 },
               ].map((action, i) => (
-                <div key={i} style={{ background: '#fafafa', borderRadius: '20px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px', minHeight: '170px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '14px', background: '#fff', border: '1px solid #f0f0f0' }}>
-                    {action.icon}
-                  </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#111' }}>{action.title}</h3>
-                    <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#6b7280', lineHeight: 1.55 }}>{action.desc}</p>
-                  </div>
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {action.icon}
+                  <h3 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#111' }}>{action.title}</h3>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#888', lineHeight: 1.5 }}>{action.desc}</p>
                   <button
+                    onClick={action.onClick}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                      padding: '10px 14px', borderRadius: '10px',
+                      padding: '10px 16px', borderRadius: '8px',
                       border: action.primary ? 'none' : '1.5px solid #e8001d',
                       background: action.primary ? '#e8001d' : 'transparent',
                       color: action.primary ? '#fff' : '#e8001d',
@@ -267,7 +400,7 @@ function WarrantyResultContent() {
                       else { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#e8001d'; }
                     }}
                   >
-                    {action.btnLabel}
+                    {action.btnLabel} {action.btnIcon}
                   </button>
                 </div>
               ))}
@@ -275,42 +408,44 @@ function WarrantyResultContent() {
           </div>
 
           {/* Right: Specifications */}
-          <div style={{ background: '#fff', borderRadius: '24px', border: '1px solid #e8e8e8', padding: '28px' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#111', margin: '0 0 18px' }}>
+          <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e8e8e8', padding: '28px' }}>
+            <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#111', margin: '0 0 16px' }}>
               Product Specifications
             </h2>
-            <div style={{ display: 'grid', gap: '12px' }}>
-              {[
-                { label: 'Product Name', value: product.productName },
-                { label: 'Model', value: product.model },
-                { label: 'Color', value: product.color },
-                { label: 'Category', value: product.category },
-                { label: 'Warranty Type', value: product.warrantyType },
-                { label: 'Place of Purchase', value: product.placeOfPurchase },
-                { label: 'Invoice Required', value: product.invoiceRequired },
-              ].map((spec, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 16px', borderRadius: '18px', background: i % 2 === 0 ? '#f8f8f8' : '#fff' }}>
-                  <span style={{ fontSize: '0.86rem', color: '#6b7280' }}>{spec.label}</span>
-                  <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#111' }}>{spec.value}</span>
-                </div>
-              ))}
-            </div>
+            {[
+              { label: 'Product Name', value: product.productName },
+              { label: 'Model', value: product.model },
+              { label: 'Color', value: product.color },
+              { label: 'Category', value: product.category },
+              { label: 'Warranty Type', value: product.warrantyType },
+              { label: 'Place of Purchase', value: product.placeOfPurchase },
+              { label: 'Invoice Required', value: product.invoiceRequired },
+            ].map((spec, i) => (
+              <div key={i} style={{
+                display: 'flex', justifyContent: 'space-between',
+                padding: '9px 0',
+                borderBottom: i < 6 ? '1px solid #f0f0f0' : 'none',
+              }}>
+                <span style={{ fontSize: '0.82rem', color: '#888' }}>{spec.label}</span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#111' }}>{spec.value}</span>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Disclaimer */}
         <div style={{
-          background: '#fff', borderRadius: '12px',
-          border: '1px solid #e8e8e8', padding: '16px 20px',
+          background: '#fff5f5', borderRadius: '12px',
+          border: '1px solid #fee2e2', padding: '16px 20px',
           display: 'flex', alignItems: 'center', gap: '10px',
-          fontSize: '0.78rem', color: '#666', marginBottom: '32px',
+          fontSize: '0.78rem', color: '#e8001d', marginBottom: '32px',
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" style={{ flexShrink: 0 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2" style={{ flexShrink: 0 }}>
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" strokeLinecap="round" />
-            <circle cx="12" cy="16" r="0.5" fill="#888" stroke="#888" />
+            <circle cx="12" cy="16" r="0.5" fill="#e8001d" stroke="#e8001d" />
           </svg>
-          Warranty is valid for manufacturing defects only and does not cover physical damage or water damage.
+          <span style={{ color: '#444' }}>Warranty is valid for manufacturing defects only and does not cover physical damage or water damage.</span>
         </div>
       </div>
 
@@ -320,7 +455,7 @@ function WarrantyResultContent() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: '24px',
+        padding: '28px 48px',
         borderTop: '1px solid #222',
         gap: '0',
         flexWrap: 'wrap',
