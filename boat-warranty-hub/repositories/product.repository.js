@@ -60,3 +60,15 @@ export async function countExpiredProducts() {
         }
     });
 }   
+
+export async function updateWarrantyPdf(productId, warrantyPdfUrl){
+    return await prisma.product.update({
+        where:{
+            id:productId,
+        },
+        data:{
+            warrantyPdfUrl,
+            pdfUploadedAt: new Date(),
+        }
+    })
+}

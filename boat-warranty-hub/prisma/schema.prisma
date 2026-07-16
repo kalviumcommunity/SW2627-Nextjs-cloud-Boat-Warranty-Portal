@@ -19,6 +19,8 @@ model Product{
   purchaseDate      DateTime
   warrantyExpiry    DateTime
   isActive          Boolean  @default(true)
+  warrantyPdfUrl    String?
+  pdfUploadedAt     DateTime?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt 
   repairs           Repair[]
