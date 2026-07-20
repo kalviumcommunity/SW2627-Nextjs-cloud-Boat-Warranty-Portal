@@ -1,35 +1,35 @@
-﻿import Image from 'next/image';
+import Image from 'next/image';
 
 export default function AdminHero() {
   return (
     <section style={{
       position: 'relative',
-      background: '#111111',
+      backgroundColor: '#000000',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      minHeight: '320px',
-      padding: '48px 64px 80px',
+      minHeight: '400px',
+      padding: '48px 64px 60px',
       overflow: 'hidden',
     }}>
-      {/* Red Geometric Chevron */}
+      {/* Right Side Slashed Image Container */}
       <div style={{
         position: 'absolute', right: 0, top: 0, bottom: 0,
-        width: '55%', pointerEvents: 'none', zIndex: 1,
+        width: '65%', zIndex: 1,
       }}>
+        {/* White slash border */}
         <div style={{
-          position: 'absolute', right: '-40px', top: '-30px',
-          width: '100%', height: '130%',
-          background: 'var(--red)',
-          clipPath: 'polygon(28% 0%, 100% 0%, 100% 100%, 18% 100%, 0% 50%)',
-          opacity: 0.92,
+          position: 'absolute', left: 0, top: 0, bottom: 0, right: 0,
+          background: '#ffffff',
+          clipPath: 'polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%)',
+          transform: 'translateX(-4px)',
         }} />
+        {/* The Hero Image */}
         <div style={{
-          position: 'absolute', right: 0, top: 0,
-          width: '100%', height: '100%',
-          background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, transparent 60%)',
-          clipPath: 'polygon(28% 0%, 100% 0%, 100% 100%, 18% 100%, 0% 50%)',
-          zIndex: 2,
+          position: 'absolute', left: 0, top: 0, bottom: 0, right: 0,
+          backgroundImage: 'url("/hero-banner-2.png")',
+          backgroundSize: 'cover', backgroundPosition: 'center center', backgroundRepeat: 'no-repeat',
+          clipPath: 'polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%)',
         }} />
       </div>
 
@@ -40,22 +40,21 @@ export default function AdminHero() {
           fontSize: '0.72rem', fontWeight: 700,
           letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '14px',
         }}>
-          WARRANTY LOOKUP
+          ADMINISTRATOR PANEL
         </span>
         <h1 style={{
           fontSize: 'clamp(2rem, 3.2vw, 2.8rem)',
           fontWeight: 900, color: 'var(--white)',
           lineHeight: 1.15, marginBottom: '18px', letterSpacing: '-0.5px',
         }}>
-          Verify Your Warranty.<br />
-          Instantly<span style={{ color: 'var(--red)' }}>.</span>
+          Manage Portal<br />
+          Overview<span style={{ color: 'var(--red)' }}>.</span>
         </h1>
         <p style={{
-          color: '#aaaaaa', fontSize: '0.875rem',
+          color: '#ffffff', fontSize: '0.875rem',
           lineHeight: 1.6, marginBottom: '32px', maxWidth: '420px',
         }}>
-          Enter your product serial number to verify warranty status,<br />
-          view repair history and download your warranty certificate.
+          Monitor products, manage warranty claims, and oversee repairs efficiently from a central dashboard.
         </p>
         <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
           {[
@@ -97,28 +96,14 @@ export default function AdminHero() {
               }}>{icon}</div>
               <div>
                 <div style={{ color: 'var(--white)', fontSize: '0.82rem', fontWeight: 700 }}>{title}</div>
-                <div style={{ color: '#888', fontSize: '0.72rem', marginTop: '2px' }}>{sub}</div>
+                <div style={{ color: '#ffffff', fontSize: '0.72rem', marginTop: '2px' }}>{sub}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right Product Image */}
-      <div style={{ position: 'relative', zIndex: 5, flexShrink: 0 }}>
-        <Image
-          src="/boat_headphones.png"
-          alt="boAt headphones product"
-          width={460}
-          height={360}
-          priority
-          style={{
-            width: '420px', height: 'auto', objectFit: 'contain',
-            filter: 'drop-shadow(0 20px 60px rgba(0,0,0,0.7))',
-            transform: 'translateX(20px)',
-          }}
-        />
-      </div>
+      {/* Removed old Right Product Image as it's replaced by the background banner */}
     </section>
   );
 }

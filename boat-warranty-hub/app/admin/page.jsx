@@ -11,6 +11,7 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('admin');
@@ -21,7 +22,18 @@ export default function AdminDashboardPage() {
     try {
       const parsed = JSON.parse(stored);
       setAdmin(parsed);
-      setLoading(false);
+      
+      // Fetch Dashboard Stats
+      fetch('/api/dashboard/stats')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setStats(data.data);
+          }
+        })
+        .catch(err => console.error("Failed to fetch stats:", err))
+        .finally(() => setLoading(false));
+
     } catch {
       router.push('/admin/login');
     }
@@ -30,10 +42,10 @@ export default function AdminDashboardPage() {
   if (loading || !admin) return null;
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f5f5f5', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100vh', background: '#000000', display: 'flex', flexDirection: 'column' }}>
       <AdminNavbar admin={admin} />
       <AdminHero />
-      <AdminCTA />
+      <AdminCTA stats={stats} />
       <Footer />
     </main>
   );
