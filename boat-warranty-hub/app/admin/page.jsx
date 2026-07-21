@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import AdminNavbar from '@/components/layout/AdminSidebar';
 import AdminHero from '@/components/layout/DashboardHeader';
 import AdminCTA from '@/components/admin/DashboardCards';
@@ -9,21 +10,19 @@ import Footer from '@/components/layout/Footer';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const [admin, setAdmin] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
+  const loadingSession = status === 'loading';
+  const admin = session?.user;
+  const [loadingStats, setLoadingStats] = useState(true);
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('admin');
-    if (!stored) {
+    if (status === 'unauthenticated') {
       router.push('/admin/login');
       return;
     }
-    try {
-      const parsed = JSON.parse(stored);
-      setAdmin(parsed);
-      
-      // Fetch Dashboard Stats
+    
+    if (status === 'authenticated') {
       fetch('/api/dashboard/stats')
         .then(res => res.json())
         .then(data => {
@@ -32,17 +31,14 @@ export default function AdminDashboardPage() {
           }
         })
         .catch(err => console.error("Failed to fetch stats:", err))
-        .finally(() => setLoading(false));
-
-    } catch {
-      router.push('/admin/login');
+        .finally(() => setLoadingStats(false));
     }
-  }, [router]);
+  }, [status, router]);
 
-  if (loading || !admin) return null;
+  if (loadingSession || loadingStats || !admin) return null;
 
   return (
-    <main style={{ minHeight: '100vh', background: '#000000', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: '100vh', background: '#f5f3f3', display: 'flex', flexDirection: 'column' }}>
       <AdminNavbar admin={admin} />
       <AdminHero />
       <AdminCTA stats={stats} />

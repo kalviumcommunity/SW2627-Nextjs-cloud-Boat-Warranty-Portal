@@ -1,44 +1,13 @@
 'use client';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import AdminNavbar from '@/components/layout/AdminSidebar';
+import ProductDetailCard from '@/components/shared/ProductDetailCard';
 
-// ── Mock warranty data ────────────────────────────────────────────────────────
-const warrantyDB = {
-  'BW123456789001': {
-    productName: 'boAt Airdopes 141',
-    model: 'Airdopes 141',
-    category: 'Earbuds',
-    color: 'Active Black',
-    purchaseDate: '15 Jan 2024',
-    warrantyStart: '15 Jan 2024',
-    warrantyExpiry: '14 Jan 2025',
-    daysLeft: 215,
-    status: 'Active',
-    warrantyType: 'Manufacturing Warranty',
-    placeOfPurchase: 'Online',
-    invoiceRequired: 'No',
-    image: '/boat_earbuds.png',
-  },
-};
-
-const defaultProduct = {
-  productName: 'boAt Rockerz 550',
-  model: 'Rockerz 550',
-  category: 'Headphones',
-  color: 'Active Black',
-  purchaseDate: '15 Jan 2024',
-  warrantyStart: '15 Jan 2024',
-  warrantyExpiry: '14 Jan 2025',
-  daysLeft: 215,
-  status: 'Active',
-  warrantyType: 'Manufacturing Warranty',
-  placeOfPurchase: 'Online',
-  invoiceRequired: 'No',
-  image: '/boat_headphones.png',
-};
+// No mock data needed here anymore
 
 // ── Page content (inside Suspense for useSearchParams) ────────────────────────
 function AdminWarrantyLookupContent({ admin }) {
@@ -46,8 +15,34 @@ function AdminWarrantyLookupContent({ admin }) {
   const router = useRouter();
   const serial = searchParams.get('serial') || '';
 
-  const product = warrantyDB[serial] || { ...defaultProduct };
-  const isActive = product.status === 'Active';
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!serial) {
+      setLoading(false);
+      return;
+    }
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`/api/warranty/${serial}`);
+        const result = await response.json();
+        if (response.ok) {
+          setProduct(result);
+        } else {
+          setError(result.message || 'Product not found');
+        }
+      } catch (err) {
+        setError('Error connecting to server.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [serial]);
+
+  const isActive = product?.warrantyStatus === 'ACTIVE';
 
   const [uploadStatus, setUploadStatus] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -58,44 +53,80 @@ function AdminWarrantyLookupContent({ admin }) {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const handleUpload = () => {
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('Only PDF files are allowed.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('PDF size must not exceed 5 MB.');
+      return;
+    }
+
     setUploadStatus('uploading');
-    setTimeout(() => setUploadStatus('done'), 1400);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`/api/products/${product.id}/warranty-pdf`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setUploadStatus('done');
+        setProduct(prev => ({ ...prev, warrantyPdfUrl: 'uploaded', pdfUploadedAt: new Date().toISOString() }));
+      } else {
+        setUploadStatus('error');
+        alert(data.message || 'Upload failed');
+      }
+    } catch (err) {
+      setUploadStatus('error');
+      alert('Error uploading file');
+    }
+    e.target.value = null;
   };
 
-  const rows = [
-    { label: 'Serial Number', value: serial, copy: true },
-    { label: 'Product Category', value: product.category, bold: true },
-    { label: 'Purchase Date', value: product.purchaseDate, bold: true },
-    { label: 'Warranty Start Date', value: product.warrantyStart, bold: true },
-    {
-      label: 'Warranty Expiry Date',
-      value: (
-        <span>
-          {product.warrantyExpiry}{' '}
-          <span style={{ color: '#e8001d', fontWeight: 600 }}>({product.daysLeft} days left)</span>
-        </span>
-      ),
-      bold: true,
-    },
-    {
-      label: 'Warranty Status',
-      value: (
-        <span style={{ color: isActive ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
-          {product.status}
-        </span>
-      ),
-    },
-  ];
+  const handleDownload = () => {
+    if (product?.warrantyPdfUrl) {
+      window.open(`/api/products/${product.id}/warranty-pdf`, '_blank');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ background: '#f5f5f5', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', color: '#888' }}>
+        Loading product details...
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <main style={{ background: '#f5f5f5', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
+        <AdminNavbar admin={admin} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <h2 style={{ color: '#e8001d' }}>{error || 'Product not found'}</h2>
+          <button onClick={() => router.push('/admin')} style={{ marginTop: '16px', padding: '10px 20px', borderRadius: '8px', background: '#e8001d', color: '#fff', border: 'none', cursor: 'pointer' }}>
+            Back to Search
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  const purchaseDate = new Date(product.purchaseDate).toLocaleDateString();
+  const expiryDate = new Date(product.warrantyExpiry).toLocaleDateString();
+  const daysLeft = Math.max(0, Math.ceil((new Date(product.warrantyExpiry) - new Date()) / (1000 * 60 * 60 * 24)));
 
   const specs = [
     { label: 'Product Name', value: product.productName },
-    { label: 'Model', value: product.model },
-    { label: 'Color', value: product.color },
-    { label: 'Category', value: product.category },
-    { label: 'Warranty Type', value: product.warrantyType },
-    { label: 'Place of Purchase', value: product.placeOfPurchase },
-    { label: 'Invoice Required', value: product.invoiceRequired },
+    { label: 'Total Repairs', value: product.totalRepairs || 0 },
+    { label: 'Open Repairs', value: product.openRepairs || 0 },
+    ...(product.lastRepairDate ? [{ label: 'Last Repair Date', value: new Date(product.lastRepairDate).toLocaleDateString() }] : []),
+    ...(product.pdfUploadedAt ? [{ label: 'PDF Uploaded At', value: new Date(product.pdfUploadedAt).toLocaleString() }] : []),
   ];
 
   const CalIcon = () => (
@@ -106,15 +137,6 @@ function AdminWarrantyLookupContent({ admin }) {
       <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   );
-  const CalCheckIcon = () => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-      <path d="M9 15l2 2 4-4" strokeLinecap="round" />
-    </svg>
-  );
   const ClockIcon = () => (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
       <circle cx="12" cy="12" r="10" />
@@ -123,10 +145,9 @@ function AdminWarrantyLookupContent({ admin }) {
   );
 
   const timeline = [
-    { label: 'Purchase Date', value: product.purchaseDate, highlight: false, icon: <CalIcon /> },
-    { label: 'Warranty Start Date', value: product.warrantyStart, highlight: false, icon: <CalCheckIcon /> },
-    { label: 'Warranty Expiry Date', value: product.warrantyExpiry, highlight: false, icon: <ClockIcon /> },
-    { label: 'Remaining Warranty', value: `${product.daysLeft} Days`, highlight: true, icon: <ClockIcon /> },
+    { label: 'Purchase Date', value: purchaseDate, highlight: false, icon: <CalIcon /> },
+    { label: 'Warranty Expiry Date', value: expiryDate, highlight: false, icon: <ClockIcon /> },
+    { label: 'Remaining Warranty', value: `${daysLeft} Days`, highlight: isActive, icon: <ClockIcon /> },
   ];
 
   return (
@@ -157,55 +178,27 @@ function AdminWarrantyLookupContent({ admin }) {
       <div style={{ maxWidth: '1400px', margin: '32px auto', padding: '0 40px', flex: 1, width: '100%' }}>
 
         {/* Product Card Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', marginBottom: '24px' }}>
 
           {/* Left: Product Details */}
-          <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e8e8e8', padding: '28px', display: 'flex', gap: '28px', alignItems: 'flex-start' }}>
-            <div style={{ width: '200px', height: '200px', flexShrink: 0, borderRadius: '14px', overflow: 'hidden', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Image src={product.image} alt={product.productName} width={200} height={200} style={{ objectFit: 'contain', width: '100%', height: '100%' }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
-                <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: '#111', margin: 0 }}>{product.productName}</h1>
-                {isActive && (
-                  <span style={{ background: '#e6f9f0', color: '#16a34a', fontSize: '0.75rem', fontWeight: 700, padding: '4px 12px', borderRadius: '20px', border: '1px solid #bbf7d0', whiteSpace: 'nowrap' }}>
-                    Active Warranty
-                  </span>
-                )}
-              </div>
-              {rows.map((row, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: i < rows.length - 1 ? '1px solid #f0f0f0' : 'none', gap: '24px' }}>
-                  <span style={{ width: '180px', flexShrink: 0, fontSize: '0.88rem', color: '#888' }}>{row.label}</span>
-                  <span style={{ fontSize: '0.95rem', fontWeight: row.bold ? 700 : 400, color: '#111', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {row.value}
-                    {row.copy && (
-                      <button title="Copy serial number" onClick={handleCopy} style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? '#16a34a' : '#888', padding: 0, transition: 'color 0.2s' }}>
-                        {copied
-                          ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                          : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
-                        }
-                      </button>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div style={{ flex: '1 1 600px' }}>
+            <ProductDetailCard product={product} serial={serial} onCopy={handleCopy} copied={copied} />
           </div>
 
           {/* Right: Warranty Status */}
-          <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e8e8e8', padding: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '12px' }}>
+          <div style={{ flex: '1 1 300px', background: '#fff', borderRadius: '14px', border: '1px solid #e8e8e8', padding: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '12px' }}>
             <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
               <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z" fill={isActive ? '#e6f9f0' : '#fef2f2'} stroke={isActive ? '#16a34a' : '#dc2626'} strokeWidth="1.5" />
               <path d="M9 12l2 2 4-4" stroke={isActive ? '#16a34a' : '#dc2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <p style={{ fontSize: '0.75rem', color: '#888', margin: 0, textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700 }}>WARRANTY STATUS</p>
-            <p style={{ fontSize: '2rem', fontWeight: 900, margin: 0, color: isActive ? '#16a34a' : '#dc2626' }}>{product.status.toUpperCase()}</p>
+            <p style={{ fontSize: '2rem', fontWeight: 900, margin: 0, color: isActive ? '#16a34a' : '#dc2626' }}>{product.warrantyStatus.toUpperCase()}</p>
             <p style={{ fontSize: '0.82rem', color: '#666', margin: 0, lineHeight: 1.5 }}>Your product is protected<br />under warranty.</p>
           </div>
         </div>
 
         {/* Timeline Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
           {timeline.map((item, i) => (
             <div key={i} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e8e8e8', padding: '20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div style={{ flexShrink: 0 }}>{item.icon}</div>
@@ -218,12 +211,12 @@ function AdminWarrantyLookupContent({ admin }) {
         </div>
 
         {/* Actions + Specs Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '20px' }}>
 
           {/* Actions */}
-          <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e8e8e8', padding: '28px' }}>
+          <div style={{ flex: '1 1 500px', background: '#fff', borderRadius: '14px', border: '1px solid #e8e8e8', padding: '28px' }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#111', margin: '0 0 20px' }}>What would you like to do?</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
 
               {/* Download PDF */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -236,9 +229,11 @@ function AdminWarrantyLookupContent({ admin }) {
                 <h3 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#111' }}>Download Warranty Certificate</h3>
                 <p style={{ margin: 0, fontSize: '0.78rem', color: '#888', lineHeight: 1.5 }}>Download the warranty certificate in PDF format.</p>
                 <button
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px 16px', borderRadius: '8px', border: 'none', background: '#e8001d', color: '#fff', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', marginTop: 'auto', transition: 'background 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#c40019'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#e8001d'; }}
+                  onClick={handleDownload}
+                  disabled={!product.warrantyPdfUrl}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px 16px', borderRadius: '8px', border: 'none', background: product.warrantyPdfUrl ? '#e8001d' : '#ccc', color: '#fff', fontSize: '0.82rem', fontWeight: 700, cursor: product.warrantyPdfUrl ? 'pointer' : 'not-allowed', marginTop: 'auto', transition: 'background 0.2s' }}
+                  onMouseEnter={e => { if(product.warrantyPdfUrl) e.currentTarget.style.background = '#c40019'; }}
+                  onMouseLeave={e => { if(product.warrantyPdfUrl) e.currentTarget.style.background = '#e8001d'; }}
                 >
                   Download PDF ↓
                 </button>
@@ -270,9 +265,7 @@ function AdminWarrantyLookupContent({ admin }) {
                 </svg>
                 <h3 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#111' }}>Upload Warranty Certificate</h3>
                 <p style={{ margin: 0, fontSize: '0.78rem', color: '#888', lineHeight: 1.5 }}>Upload new or updated warranty certificate for this product.</p>
-                <button
-                  onClick={handleUpload}
-                  disabled={uploadStatus === 'uploading'}
+                <label
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                     padding: '10px 16px', borderRadius: '8px', border: 'none',
@@ -286,14 +279,15 @@ function AdminWarrantyLookupContent({ admin }) {
                   onMouseLeave={e => { e.currentTarget.style.background = uploadStatus === 'done' ? '#16a34a' : '#7c3aed'; }}
                 >
                   {uploadStatus === 'uploading' ? 'Uploading…' : uploadStatus === 'done' ? '✓ Uploaded' : 'Upload PDF ↑'}
-                </button>
+                  <input type="file" accept="application/pdf" style={{ display: 'none' }} onChange={handleUpload} disabled={uploadStatus === 'uploading'} />
+                </label>
               </div>
 
             </div>
           </div>
 
           {/* Specifications */}
-          <div style={{ background: '#fff', borderRadius: '14px', border: '1px solid #e8e8e8', padding: '28px' }}>
+          <div style={{ flex: '1 1 300px', background: '#fff', borderRadius: '14px', border: '1px solid #e8e8e8', padding: '28px' }}>
             <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#111', margin: '0 0 16px' }}>Product Specifications</h2>
             {specs.map((spec, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: i < specs.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
@@ -347,22 +341,14 @@ function AdminWarrantyLookupContent({ admin }) {
 // ── Page wrapper with admin auth guard ────────────────────────────────────────
 export default function AdminWarrantyLookupPage() {
   const router = useRouter();
-  const [admin, setAdmin] = useState(null);
-  const [loading, setLoading] = useState(true);
-
+  const { data: session, status } = useSession();
+  const loading = status === 'loading';
+  const admin = session?.user;
   useEffect(() => {
-    const stored = localStorage.getItem('admin');
-    if (!stored) {
-      router.push('/admin/login');
-      return;
-    }
-    try {
-      setAdmin(JSON.parse(stored));
-      setLoading(false);
-    } catch {
+    if (status === 'unauthenticated') {
       router.push('/admin/login');
     }
-  }, [router]);
+  }, [status, router]);
 
   if (loading || !admin) {
     return (

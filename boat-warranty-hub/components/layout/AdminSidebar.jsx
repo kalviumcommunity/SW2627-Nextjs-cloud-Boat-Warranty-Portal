@@ -1,14 +1,16 @@
-﻿'use client';
+'use client';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+import { signOut } from 'next-auth/react';
 
 export default function AdminNavbar({ admin }) {
   const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin');
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
     router.push('/admin/login');
   };
 

@@ -1,6 +1,7 @@
 'use client';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import AdminNavbar from '@/components/layout/AdminSidebar';
 
@@ -14,82 +15,25 @@ const statusStyle = {
   Rejected:        { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
 };
 
-// ── Mock repair records ───────────────────────────────────────────────────────
-const baseRecords = [
-  {
-    id: 1,
-    date: '01 Mar 2025',
-    time: '01:20 PM',
-    issue: 'General Check-up',
-    center: 'boAt Service Center, Mumbai',
-    technician: 'Pooja Iyer',
-    status: 'Under Process',
-    remarks: 'Product under routine inspection.',
-    details: 'Diagnostic Test: Running. All audio frequencies are being tested. Outer body cleaning and ear-tip sanitization completed. Waiting for final quality checks.',
-  },
-  {
-    id: 2,
-    date: '10 Feb 2025',
-    time: '10:30 AM',
-    issue: 'Left Earphone Not Working',
-    center: 'boAt Service Center, Mumbai',
-    technician: 'Rahul Sharma',
-    status: 'Repaired',
-    remarks: 'Replaced left driver unit.',
-    details: 'Driver Replacement: Left earbud disassembled, faulty dynamic driver unit desoldered and replaced with a brand new original boAt spare part. Stereo balance and frequency response verified.',
-  },
-  {
-    id: 3,
-    date: '22 Aug 2024',
-    time: '11:15 AM',
-    issue: 'Charging Issue',
-    center: 'boAt Service Center, Delhi',
-    technician: 'Amit Verma',
-    status: 'Repaired',
-    remarks: 'Charging port cleaned and tested.',
-    details: 'Port Maintenance: USB-C port inspected under microscope. Removed packed lint and debris. Cleaned terminals with isopropyl alcohol. Verified current draw at stable 5V/1A.',
-  },
-  {
-    id: 4,
-    date: '05 Dec 2024',
-    time: '02:40 PM',
-    issue: 'Cable Noise',
-    center: 'boAt Service Center, Bengaluru',
-    technician: 'Sanjay N.',
-    status: 'Repaired',
-    remarks: 'Internal cable replaced.',
-    details: 'Cable Rewiring: Opened headphone casing, traced static noise to a frayed internal wire. Clipped damaged segment, resoldered connection with improved heat shrink insulation. Noise successfully eliminated.',
-  },
-];
+const statusLabel = (status) => ({
+  IN_PROGRESS: 'Under Process',
+  COMPLETED: 'Repaired',
+  PENDING: 'Pending',
+  CANCELLED: 'Rejected',
+}[status] || status);
 
-const extraRecords = [
-  {
-    id: 5,
-    date: '14 May 2024',
-    time: '04:15 PM',
-    issue: 'Firmware Update Failure',
-    center: 'boAt Service Center, Chennai',
-    technician: 'Karthik R.',
-    status: 'Repaired',
-    remarks: 'Flashed default firmware.',
-    details: 'Firmware Restore: Connected device to debug interface. Flashed stock firmware v2.4.1. Calibrated Bluetooth pairing and verified playback controls.',
-  },
-  {
-    id: 6,
-    date: '08 Jan 2024',
-    time: '10:00 AM',
-    issue: 'Bluetooth Disconnection',
-    center: 'boAt Service Center, Kolkata',
-    technician: 'Subhash Sen',
-    status: 'Repaired',
-    remarks: 'Replaced Bluetooth module chip.',
-    details: 'Module Replacement: Diagnosed weak signal output. Replaced faulty BT transceiver chip on main PCB. Signal range re-verified up to 10 meters.',
-  },
-];
+const escapeCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const formatCsvDate = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
+};
+
+// Mock records removed, fetching live data
 
 // ── Status Change Modal ───────────────────────────────────────────────────────
 function StatusModal({ record, onClose, onSave }) {
-  const [selected, setSelected] = useState(record.status);
+  const [selected, setSelected] = useState(record.repairStatus);
   const [note, setNote] = useState('');
 
   return (
@@ -121,11 +65,11 @@ function StatusModal({ record, onClose, onSave }) {
         <div style={{ marginBottom: '20px' }}>
           <p style={{ margin: '0 0 8px', fontSize: '0.78rem', color: '#888', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Current Status</p>
           <span style={{
-            background: statusStyle[record.status]?.bg || '#f5f5f5',
-            color: statusStyle[record.status]?.color || '#555',
-            border: `1px solid ${statusStyle[record.status]?.border || '#e8e8e8'}`,
+            background: statusStyle[statusLabel(record.repairStatus)]?.bg || '#f5f5f5',
+            color: statusStyle[statusLabel(record.repairStatus)]?.color || '#555',
+            border: `1px solid ${statusStyle[statusLabel(record.repairStatus)]?.border || '#e8e8e8'}`,
             fontSize: '0.82rem', fontWeight: 700, padding: '5px 14px', borderRadius: '20px', display: 'inline-block',
-          }}>{record.status}</span>
+          }}>{statusLabel(record.repairStatus)}</span>
         </div>
 
         {/* New status selector */}
@@ -134,11 +78,18 @@ function StatusModal({ record, onClose, onSave }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             {STATUS_OPTIONS.map(opt => {
               const s = statusStyle[opt] || {};
-              const isActive = selected === opt;
+              const isActive = selected === (opt === 'Under Process' ? 'IN_PROGRESS' : opt === 'Repaired' ? 'COMPLETED' : opt === 'Pending' ? 'PENDING' : 'CANCELLED');
               return (
                 <button
                   key={opt}
-                  onClick={() => setSelected(opt)}
+                  onClick={() => {
+                    let mappedOpt = opt;
+                    if (opt === 'Under Process') mappedOpt = 'IN_PROGRESS';
+                    if (opt === 'Repaired') mappedOpt = 'COMPLETED';
+                    if (opt === 'Pending') mappedOpt = 'PENDING';
+                    if (opt === 'Rejected') mappedOpt = 'CANCELLED';
+                    setSelected(mappedOpt);
+                  }}
                   style={{
                     padding: '11px 16px', borderRadius: '10px', cursor: 'pointer',
                     border: isActive ? `2px solid ${s.color}` : `1.5px solid ${s.border || '#e8e8e8'}`,
@@ -161,13 +112,12 @@ function StatusModal({ record, onClose, onSave }) {
           </div>
         </div>
 
-        {/* Admin note */}
         <div style={{ marginBottom: '24px' }}>
           <p style={{ margin: '0 0 8px', fontSize: '0.78rem', color: '#888', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Admin Note (optional)</p>
           <textarea
             value={note}
             onChange={e => setNote(e.target.value)}
-            placeholder="Add a note about this status change…"
+            placeholder="Add technician notes about this status change…"
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box',
@@ -193,16 +143,16 @@ function StatusModal({ record, onClose, onSave }) {
           </button>
           <button
             onClick={() => onSave(record.id, selected, note)}
-            disabled={selected === record.status}
+            disabled={selected === record.repairStatus}
             style={{
               padding: '10px 24px', borderRadius: '8px', border: 'none',
-              background: selected === record.status ? '#ccc' : '#e8001d',
+              background: selected === record.repairStatus ? '#ccc' : '#e8001d',
               color: '#fff', fontSize: '0.85rem', fontWeight: 700,
-              cursor: selected === record.status ? 'not-allowed' : 'pointer',
+              cursor: selected === record.repairStatus ? 'not-allowed' : 'pointer',
               transition: 'background 0.2s',
             }}
-            onMouseEnter={e => { if (selected !== record.status) e.currentTarget.style.background = '#c40019'; }}
-            onMouseLeave={e => { if (selected !== record.status) e.currentTarget.style.background = '#e8001d'; }}
+            onMouseEnter={e => { if (selected !== record.repairStatus) e.currentTarget.style.background = '#c40019'; }}
+            onMouseLeave={e => { if (selected !== record.repairStatus) e.currentTarget.style.background = '#e8001d'; }}
           >
             Save Status
           </button>
@@ -241,32 +191,104 @@ function AdminRepairHistoryContent({ admin }) {
   const router = useRouter();
   const serial = searchParams.get('serial') || '';
 
-  const [records, setRecords] = useState(baseRecords);
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(Boolean(serial));
+  const [error, setError] = useState(null);
   const [showMore, setShowMore] = useState(false);
   const [expandedRows, setExpandedRows] = useState({});
   const [modalRecord, setModalRecord] = useState(null);
   const [toast, setToast] = useState(null);
   const [filterStatus, setFilterStatus] = useState('All');
 
+  useEffect(() => {
+    if (!serial) {
+      return;
+    }
+    const fetchRepairs = async () => {
+      try {
+        setError(null);
+        const response = await fetch(`/api/warranty/${encodeURIComponent(serial)}/repairs`);
+        const result = await response.json();
+        if (response.ok && result.success) {
+          setRecords(result.data);
+        } else {
+          setError(result.message || 'Failed to fetch repairs');
+        }
+      } catch {
+        setError('Error connecting to server.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRepairs();
+  }, [serial]);
+
   const toggleRow = id => setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
 
   const handleSeeMore = () => {
-    if (showMore) { setRecords(baseRecords); setShowMore(false); }
-    else { setRecords([...baseRecords, ...extraRecords]); setShowMore(true); }
+    setShowMore(prev => !prev);
   };
 
-  const handleSaveStatus = (id, newStatus, note) => {
-    setRecords(prev => prev.map(r => r.id === id ? { ...r, status: newStatus, remarks: note ? note : r.remarks } : r));
-    setModalRecord(null);
-    setToast(`Record #${id} updated to "${newStatus}"`);
+  const downloadCsv = () => {
+    const headers = ['Serial Number', 'Repair ID', 'Repair Date', 'Issue Reported', 'Status', 'Technician Notes', 'Estimated Completion'];
+    const lines = filtered.map((row) => [
+      serial,
+      row.id,
+      formatCsvDate(row.repairDate),
+      row.issue,
+      statusLabel(row.repairStatus),
+      row.technicianNotes,
+      formatCsvDate(row.estimatedCompletion),
+    ].map(escapeCsvValue).join(','));
+    const csv = `\uFEFF${headers.map(escapeCsvValue).join(',')}\r\n${lines.join('\r\n')}`;
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `repair-history-${serial || 'product'}-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
-  const statusCounts = ['Under Process', 'Repaired', 'Pending', 'Rejected'].reduce((acc, s) => {
-    acc[s] = records.filter(r => r.status === s).length;
+  const handleSaveStatus = async (id, newStatus, note) => {
+    try {
+      const response = await fetch(`/api/repairs/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          repairStatus: newStatus,
+          technicianNotes: note,
+        }),
+      });
+
+      const result = await response.json();
+      if (response.ok && result.success) {
+        setRecords(prev => prev.map(r => r.id === id ? result.data : r));
+        setModalRecord(null);
+        setToast(`Record #${id} updated successfully`);
+      } else {
+        alert(result.message || 'Failed to update record');
+      }
+    } catch {
+      alert('Error connecting to server.');
+    }
+  };
+
+  const statusCounts = ['IN_PROGRESS', 'COMPLETED', 'PENDING', 'CANCELLED'].reduce((acc, s) => {
+    acc[s] = records.filter(r => r.repairStatus === s).length;
     return acc;
   }, {});
 
-  const filtered = filterStatus === 'All' ? records : records.filter(r => r.status === filterStatus);
+  const mapFilterToStatus = {
+    'Under Process': 'IN_PROGRESS',
+    'Repaired': 'COMPLETED',
+    'Pending': 'PENDING',
+    'Rejected': 'CANCELLED'
+  };
+
+  const filtered = filterStatus === 'All' ? records : records.filter(r => r.repairStatus === mapFilterToStatus[filterStatus]);
+  const visibleRecords = showMore ? filtered : filtered.slice(0, 10);
 
   return (
     <main style={{ background: '#f5f5f5', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
@@ -318,7 +340,8 @@ function AdminRepairHistoryContent({ admin }) {
               Admin Mode
             </span>
             <button
-              onClick={() => alert('Downloading repair history PDF...')}
+              onClick={downloadCsv}
+              disabled={loading || filtered.length === 0}
               style={{ display: 'flex', alignItems: 'center', gap: '8px', border: '1.5px solid #e8001d', color: '#e8001d', background: '#fff', padding: '10px 20px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.background = '#fff5f5'; }}
               onMouseLeave={e => { e.currentTarget.style.background = '#fff'; }}
@@ -326,7 +349,7 @@ function AdminRepairHistoryContent({ admin }) {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              Download Report
+              Download CSV
             </button>
           </div>
         </div>
@@ -335,9 +358,9 @@ function AdminRepairHistoryContent({ admin }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
           {[
             { label: 'Total Records', value: records.length, color: '#111', bg: '#fff', border: '#e8e8e8', highlight: filterStatus === 'All', filterVal: 'All' },
-            { label: 'Under Process', value: statusCounts['Under Process'] || 0, color: '#2563eb', bg: '#eff6ff', border: '#dbeafe', highlight: filterStatus === 'Under Process', filterVal: 'Under Process' },
-            { label: 'Repaired', value: statusCounts['Repaired'] || 0, color: '#16a34a', bg: '#f0fdf4', border: '#dcfce7', highlight: filterStatus === 'Repaired', filterVal: 'Repaired' },
-            { label: 'Pending / Rejected', value: (statusCounts['Pending'] || 0) + (statusCounts['Rejected'] || 0), color: '#ca8a04', bg: '#fefce8', border: '#fef08a', highlight: filterStatus === 'Pending' || filterStatus === 'Rejected', filterVal: 'Pending' },
+            { label: 'Under Process', value: statusCounts['IN_PROGRESS'] || 0, color: '#2563eb', bg: '#eff6ff', border: '#dbeafe', highlight: filterStatus === 'Under Process', filterVal: 'Under Process' },
+            { label: 'Repaired', value: statusCounts['COMPLETED'] || 0, color: '#16a34a', bg: '#f0fdf4', border: '#dcfce7', highlight: filterStatus === 'Repaired', filterVal: 'Repaired' },
+            { label: 'Pending / Rejected', value: (statusCounts['PENDING'] || 0) + (statusCounts['CANCELLED'] || 0), color: '#ca8a04', bg: '#fefce8', border: '#fef08a', highlight: filterStatus === 'Pending' || filterStatus === 'Rejected', filterVal: 'Pending' },
           ].map((card, i) => (
             <div
               key={i}
@@ -390,16 +413,29 @@ function AdminRepairHistoryContent({ admin }) {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 && (
+              {loading ? (
+                <tr>
+                  <td colSpan="9" style={{ padding: '40px', textAlign: 'center', color: '#888', fontSize: '0.88rem' }}>
+                    Loading records...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan="9" style={{ padding: '40px', textAlign: 'center', color: '#e8001d', fontSize: '0.88rem' }}>
+                    {error}
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan="9" style={{ padding: '40px', textAlign: 'center', color: '#aaa', fontSize: '0.88rem' }}>
                     No records found for this filter.
                   </td>
                 </tr>
-              )}
-              {filtered.map((row, index) => {
+              ) : visibleRecords.map((row, index) => {
                 const isExpanded = !!expandedRows[row.id];
-                const s = statusStyle[row.status] || { bg: '#f5f5f5', color: '#555', border: '#e8e8e8' };
+                const displayStatus = statusLabel(row.repairStatus);
+                const s = statusStyle[displayStatus] || { bg: '#f5f5f5', color: '#555', border: '#e8e8e8' };
+                const repairDateObj = new Date(row.repairDate);
                 return (
                   <Suspense key={row.id}>
                     {/* Main row */}
@@ -419,8 +455,8 @@ function AdminRepairHistoryContent({ admin }) {
                             <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                           </svg>
                           <div>
-                            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#111' }}>{row.date}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#888' }}>{row.time}</div>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#111' }}>{repairDateObj.toLocaleDateString()}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#888' }}>{repairDateObj.toLocaleTimeString()}</div>
                           </div>
                         </div>
                       </td>
@@ -430,22 +466,21 @@ function AdminRepairHistoryContent({ admin }) {
                       </td>
                       {/* Center */}
                       <td style={{ padding: '18px 12px', fontSize: '0.82rem', color: '#444', lineHeight: 1.4, cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>
-                        {row.center}
+                        Official Service Center
                       </td>
-                      {/* Technician */}
                       <td style={{ padding: '18px 12px', fontSize: '0.82rem', color: '#444', cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>
-                        {row.technician}
+                        Assigned Tech
                       </td>
                       {/* Status badge */}
                       <td style={{ padding: '18px 12px', cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>
                         <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}`, fontSize: '0.76rem', fontWeight: 700, padding: '4px 12px', borderRadius: '20px', display: 'inline-flex', alignItems: 'center', gap: '5px', whiteSpace: 'nowrap' }}>
                           <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.color, display: 'inline-block' }} />
-                          {row.status}
+                          {displayStatus}
                         </span>
                       </td>
                       {/* Remarks */}
                       <td style={{ padding: '18px 12px', fontSize: '0.82rem', color: '#555', lineHeight: 1.4, maxWidth: '180px', cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>
-                        {row.remarks}
+                        {row.technicianNotes || 'N/A'}
                       </td>
                       {/* Change Status — ADMIN ONLY button */}
                       <td style={{ padding: '18px 12px' }}>
@@ -483,7 +518,7 @@ function AdminRepairHistoryContent({ admin }) {
                             <h4 style={{ margin: '0 0 6px', fontSize: '0.78rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                               Service Details &amp; Actions Taken
                             </h4>
-                            <p style={{ margin: 0, fontSize: '0.86rem', color: '#444', lineHeight: 1.6 }}>{row.details}</p>
+                            <p style={{ margin: 0, fontSize: '0.86rem', color: '#444', lineHeight: 1.6 }}>{row.technicianNotes || 'No detailed actions recorded yet.'}</p>
                           </div>
                         </td>
                       </tr>
@@ -495,7 +530,7 @@ function AdminRepairHistoryContent({ admin }) {
           </table>
 
           {/* See More */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '24px', borderTop: '1px solid #f0f0f0', marginTop: '16px' }}>
+          {filtered.length > 10 && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '24px', borderTop: '1px solid #f0f0f0', marginTop: '16px' }}>
             <button
               onClick={handleSeeMore}
               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px 16px' }}
@@ -506,9 +541,9 @@ function AdminRepairHistoryContent({ admin }) {
                 </svg>
                 {showMore ? 'Show Less Repairs' : 'See More Repairs'}
               </div>
-              <span style={{ fontSize: '0.74rem', color: '#888' }}>{showMore ? 'hide additional rows' : '2 more repair records'}</span>
+              <span style={{ fontSize: '0.74rem', color: '#888' }}>{showMore ? 'hide additional rows' : `${filtered.length - 10} more repair record${filtered.length - 10 === 1 ? '' : 's'}`}</span>
             </button>
-          </div>
+          </div>}
         </div>
 
         {/* Admin Info Banner */}
@@ -562,21 +597,16 @@ function AdminRepairHistoryContent({ admin }) {
 // ── Page wrapper with admin auth guard ────────────────────────────────────────
 export default function AdminRepairHistoryPage() {
   const router = useRouter();
-  const [admin, setAdmin] = useState(null);
-  const [loading, setLoading] = useState(true);
-
+  const { data: session, status } = useSession();
+  const loading = status === 'loading';
+  const admin = session?.user;
   useEffect(() => {
-    const stored = localStorage.getItem('admin');
-    if (!stored) { router.push('/admin/login'); return; }
-    try {
-      setAdmin(JSON.parse(stored));
-      setLoading(false);
-    } catch {
-      router.push('/admin/login');
+    if (status !== 'loading' && admin?.role !== 'ADMIN') {
+      router.replace('/admin/login');
     }
-  }, [router]);
+  }, [status, admin?.role, router]);
 
-  if (loading || !admin) {
+  if (loading || admin?.role !== 'ADMIN') {
     return (
       <div style={{ background: '#f5f5f5', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', color: '#888', fontSize: '1rem' }}>
         Verifying admin access…

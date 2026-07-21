@@ -1,56 +1,30 @@
 'use client';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import UserNavbar from '@/components/layout/UserNavbar';
 
-// Mock repair records
-const initialRepairRecords = [
-  {
-    id: 1,
-    date: '01 Mar 2025',
-    time: '01:20 PM',
-    issue: 'General Check-up',
-    center: 'boAt Service Center, Mumbai',
-    technician: 'Pooja Iyer',
-    status: 'Under Process',
-    remarks: 'Product under routine inspection.',
-    details: 'Diagnostic Test: Running. All audio frequencies are being tested. Outer body cleaning and ear-tip sanitization completed. Waiting for final quality checks.'
-  },
-  {
-    id: 2,
-    date: '10 Feb 2025',
-    time: '10:30 AM',
-    issue: 'Left Earphone Not Working',
-    center: 'boAt Service Center, Mumbai',
-    technician: 'Rahul Sharma',
-    status: 'Repaired',
-    remarks: 'Replaced left driver unit.',
-    details: 'Driver Replacement: Left earbud disassembled, faulty dynamic driver unit desoldered and replaced with a brand new original boAt spare part. Stereo balance and frequency response verified.'
-  },
-  {
-    id: 3,
-    date: '22 Aug 2024',
-    time: '11:15 AM',
-    issue: 'Charging Issue',
-    center: 'boAt Service Center, Delhi',
-    technician: 'Amit Verma',
-    status: 'Repaired',
-    remarks: 'Charging port cleaned and tested.',
-    details: 'Port Maintenance: USB-C port inspected under microscope. Removed packed lint and debris. Cleaned terminals with isopropyl alcohol. Verified current draw at stable 5V/1A.'
-  },
-  {
-    id: 4,
-    date: '05 Dec 2024',
-    time: '02:40 PM',
-    issue: 'Cable Noise',
-    center: 'boAt Service Center, Bengaluru',
-    technician: 'Sanjay N.',
-    status: 'Repaired',
-    remarks: 'Internal cable replaced.',
-    details: 'Cable Rewiring: Opened headphone casing, traced static noise to a frayed internal wire. Clipped damaged segment, resoldered connection with improved heat shrink insulation. Noise successfully eliminated.'
-  }
-];
+const STATUS_OPTIONS = ['Under Process', 'Repaired', 'Pending', 'Rejected'];
+const statusStyle = {
+  'Under Process': { bg: '#eff6ff', color: '#2563eb', border: '#dbeafe' },
+  Repaired: { bg: '#f0fdf4', color: '#16a34a', border: '#dcfce7' },
+  Pending: { bg: '#fefce8', color: '#ca8a04', border: '#fef08a' },
+  Rejected: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
+};
+
+const statusLabel = (status) => ({
+  IN_PROGRESS: 'Under Process',
+  COMPLETED: 'Repaired',
+  PENDING: 'Pending',
+  CANCELLED: 'Rejected',
+}[status] || status);
+
+const escapeCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const formatCsvDate = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
+};
 
 function RepairContent() {
   const searchParams = useSearchParams();
@@ -58,8 +32,34 @@ function RepairContent() {
   const serial = searchParams.get('serial') || '';
 
   const [expandedRows, setExpandedRows] = useState({});
-  const [records, setRecords] = useState(initialRepairRecords);
   const [showMore, setShowMore] = useState(false);
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(Boolean(serial));
+  const [error, setError] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('All');
+
+  useEffect(() => {
+    if (!serial) {
+      return;
+    }
+    const fetchRepairs = async () => {
+      try {
+        setError(null);
+        const response = await fetch(`/api/warranty/${encodeURIComponent(serial)}/repairs`);
+        const result = await response.json();
+        if (response.ok && result.success) {
+          setRecords(result.data);
+        } else {
+          setError(result.message || 'Failed to fetch repairs');
+        }
+      } catch {
+        setError('Error connecting to server.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRepairs();
+  }, [serial]);
 
   const toggleRow = (id) => {
     setExpandedRows(prev => ({
@@ -69,38 +69,40 @@ function RepairContent() {
   };
 
   const handleSeeMore = () => {
-    if (showMore) {
-      setRecords(initialRepairRecords);
-      setShowMore(false);
-    } else {
-      // Simulate loading extra records
-      const additional = [
-        {
-          id: 5,
-          date: '14 May 2024',
-          time: '04:15 PM',
-          issue: 'Firmware Update Failure',
-          center: 'boAt Service Center, Chennai',
-          technician: 'Karthik R.',
-          status: 'Repaired',
-          remarks: 'Flashed default firmware.',
-          details: 'Firmware Restore: Connected device to debug interface. Flashed stock firmware v2.4.1. Calibrated Bluetooth pairing and verified playback controls.'
-        },
-        {
-          id: 6,
-          date: '08 Jan 2024',
-          time: '10:00 AM',
-          issue: 'Bluetooth Disconnection',
-          center: 'boAt Service Center, Kolkata',
-          technician: 'Subhash Sen',
-          status: 'Repaired',
-          remarks: 'Replaced Bluetooth module chip.',
-          details: 'Module Replacement: Diagnosed weak signal output. Replaced faulty BT transceiver chip on main PCB. Signal range re-verified up to 10 meters.'
-        }
-      ];
-      setRecords([...initialRepairRecords, ...additional]);
-      setShowMore(true);
-    }
+    setShowMore((prev) => !prev);
+  };
+
+  const statusCounts = ['IN_PROGRESS', 'COMPLETED', 'PENDING', 'CANCELLED'].reduce((counts, status) => {
+    counts[status] = records.filter((record) => record.repairStatus === status).length;
+    return counts;
+  }, {});
+  const filterToStatus = {
+    'Under Process': 'IN_PROGRESS',
+    Repaired: 'COMPLETED',
+    Pending: 'PENDING',
+    Rejected: 'CANCELLED',
+  };
+  const filtered = filterStatus === 'All' ? records : records.filter((record) => record.repairStatus === filterToStatus[filterStatus]);
+  const visibleRecords = showMore ? filtered : filtered.slice(0, 10);
+
+  const downloadCsv = () => {
+    const headers = ['Serial Number', 'Repair ID', 'Repair Date', 'Issue Reported', 'Status', 'Technician Notes', 'Estimated Completion'];
+    const rows = filtered.map((record) => [
+      serial,
+      record.id,
+      formatCsvDate(record.repairDate),
+      record.issue,
+      statusLabel(record.repairStatus),
+      record.technicianNotes,
+      formatCsvDate(record.estimatedCompletion),
+    ].map(escapeCsvValue).join(','));
+    const csv = `\uFEFF${headers.map(escapeCsvValue).join(',')}\r\n${rows.join('\r\n')}`;
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `repair-history-${serial || 'product'}-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -181,7 +183,8 @@ function RepairContent() {
           </div>
 
           <button
-            onClick={() => alert('Downloading repair history PDF...')}
+            onClick={downloadCsv}
+            disabled={loading || filtered.length === 0}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -204,9 +207,31 @@ function RepairContent() {
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            Download Repair History
-            <span style={{ marginLeft: '4px', fontWeight: 400 }}>&gt;</span>
+            Download CSV
           </button>
+        </div>
+
+        {/* Read-only repair summary */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+          {[
+            { label: 'Total Records', value: records.length, color: '#111', bg: '#fff', border: '#e8e8e8', filterValue: 'All' },
+            { label: 'Under Process', value: statusCounts.IN_PROGRESS || 0, color: '#2563eb', bg: '#eff6ff', border: '#dbeafe', filterValue: 'Under Process' },
+            { label: 'Repaired', value: statusCounts.COMPLETED || 0, color: '#16a34a', bg: '#f0fdf4', border: '#dcfce7', filterValue: 'Repaired' },
+            { label: 'Pending / Rejected', value: (statusCounts.PENDING || 0) + (statusCounts.CANCELLED || 0), color: '#ca8a04', bg: '#fefce8', border: '#fef08a', filterValue: 'Pending' },
+          ].map((card) => (
+            <button key={card.label} onClick={() => setFilterStatus(card.filterValue)} style={{ background: card.bg, borderRadius: '12px', border: `1.5px solid ${filterStatus === card.filterValue ? card.color : card.border}`, padding: '18px 20px', cursor: 'pointer', textAlign: 'left', boxShadow: filterStatus === card.filterValue ? `0 4px 16px ${card.color}22` : 'none' }}>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: '#888', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{card.label}</p>
+              <p style={{ margin: '6px 0 0', fontSize: '1.8rem', fontWeight: 900, color: card.color }}>{card.value}</p>
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: 600 }}>Filter:</span>
+          {['All', ...STATUS_OPTIONS].map((status) => (
+            <button key={status} onClick={() => setFilterStatus(status)} style={{ padding: '5px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', border: filterStatus === status ? `1.5px solid ${statusStyle[status]?.color || '#111'}` : '1.5px solid #e8e8e8', background: filterStatus === status ? (statusStyle[status]?.bg || '#111') : '#fff', color: filterStatus === status ? (statusStyle[status]?.color || '#fff') : '#888' }}>{status}</button>
+          ))}
+          <span style={{ marginLeft: 'auto', fontSize: '0.78rem', color: '#aaa' }}>{filtered.length} record{filtered.length !== 1 ? 's' : ''}</span>
         </div>
 
         {/* Table Container Card */}
@@ -234,9 +259,23 @@ function RepairContent() {
               </tr>
             </thead>
             <tbody>
-              {records.map((row, index) => {
+              {loading ? (
+                <tr>
+                  <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#888' }}>Loading repairs...</td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#e8001d' }}>{error}</td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#888' }}>No repair history found.</td>
+                </tr>
+              ) : visibleRecords.map((row, index) => {
                 const isExpanded = !!expandedRows[row.id];
-                const isUnderProcess = row.status === 'Under Process';
+                const displayStatus = statusLabel(row.repairStatus);
+                const status = statusStyle[displayStatus] || { bg: '#f5f5f5', color: '#555', border: '#e8e8e8' };
+                const repairDateObj = new Date(row.repairDate);
 
                 return (
                   <Suspense key={row.id}>
@@ -264,8 +303,8 @@ function RepairContent() {
                             <line x1="3" y1="10" x2="21" y2="10" />
                           </svg>
                           <div>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#111' }}>{row.date}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '2px' }}>{row.time}</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#111' }}>{repairDateObj.toLocaleDateString()}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#888', marginTop: '2px' }}>{repairDateObj.toLocaleTimeString()}</div>
                           </div>
                         </div>
                       </td>
@@ -273,27 +312,27 @@ function RepairContent() {
                         {row.issue}
                       </td>
                       <td style={{ padding: '20px 12px', fontSize: '0.88rem', color: '#444', lineHeight: 1.4 }}>
-                        {row.center}
+                        Official Service Center
                       </td>
                       <td style={{ padding: '20px 12px', fontSize: '0.88rem', color: '#444' }}>
-                        {row.technician}
+                        Assigned Tech
                       </td>
                       <td style={{ padding: '20px 12px' }}>
                         <span style={{
-                          background: isUnderProcess ? '#eff6ff' : '#f0fdf4',
-                          color: isUnderProcess ? '#2563eb' : '#16a34a',
-                          border: isUnderProcess ? '1px solid #dbeafe' : '1px solid #dcfce7',
+                          background: status.bg,
+                          color: status.color,
+                          border: `1px solid ${status.border}`,
                           fontSize: '0.78rem',
                           fontWeight: 600,
                           padding: '4px 12px',
                           borderRadius: '20px',
                           display: 'inline-block',
                         }}>
-                          {row.status}
+                          {displayStatus}
                         </span>
                       </td>
                       <td style={{ padding: '20px 12px', fontSize: '0.88rem', color: '#555', lineHeight: 1.4 }}>
-                        {row.remarks}
+                        {row.technicianNotes || 'N/A'}
                       </td>
                       <td style={{ padding: '20px 12px', textAlign: 'right' }}>
                         <svg 
@@ -322,7 +361,7 @@ function RepairContent() {
                               Service Details & Actions Taken
                             </h4>
                             <p style={{ margin: 0, fontSize: '0.86rem', color: '#444', lineHeight: 1.5 }}>
-                              {row.details}
+                              {row.technicianNotes || 'No detailed actions recorded yet.'}
                             </p>
                           </div>
                         </td>
@@ -335,7 +374,7 @@ function RepairContent() {
           </table>
 
           {/* Table Footer / See More */}
-          <div style={{
+          {filtered.length > 10 && <div style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -370,10 +409,10 @@ function RepairContent() {
                 {showMore ? 'Show Less Repairs' : 'See More Repairs'}
               </div>
               <span style={{ fontSize: '0.74rem', color: '#888' }}>
-                {showMore ? 'hide additional rows' : '6 more repair records'}
+                {showMore ? 'hide additional rows' : `${filtered.length - 10} more repair record${filtered.length - 10 === 1 ? '' : 's'}`}
               </span>
             </button>
-          </div>
+          </div>}
 
         </div>
 

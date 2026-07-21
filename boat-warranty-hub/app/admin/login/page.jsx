@@ -559,10 +559,7 @@ export default function AdminLoginPage() {
                 </button>
               </div>
 
-              {/* Forgot Password */}
-              <div style={{ textAlign: 'right', marginTop: '-4px' }}>
-                <Link href="#" className="forgot-link">Forgot Password?</Link>
-              </div>
+              {/* Removed Forgot Password Link */}
 
               {/* Login Button */}
               <button type="submit" className="login-btn" style={{ marginTop: '4px' }}>

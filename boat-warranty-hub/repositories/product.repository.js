@@ -2,7 +2,8 @@ import { prisma } from  '@/lib/prisma';
 
 export async function findProductBySerialNumber(serialNumber){
     return await prisma.product.findUnique({
-        where:{serialNumber}
+        where:{serialNumber},
+        include: { repairs: true }
     })
 }
 

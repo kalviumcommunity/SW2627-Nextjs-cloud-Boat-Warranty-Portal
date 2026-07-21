@@ -1,26 +1,24 @@
-import Image from 'next/image';
-
 export default function AdminHero() {
   return (
     <section style={{
       position: 'relative',
-      backgroundColor: '#000000',
+      backgroundColor: '#ffffff',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       minHeight: '400px',
-      padding: '48px 64px 60px',
+      padding: '48px clamp(24px, 5vw, 64px) 70px',
       overflow: 'hidden',
     }}>
       {/* Right Side Slashed Image Container */}
       <div style={{
         position: 'absolute', right: 0, top: 0, bottom: 0,
-        width: '65%', zIndex: 1,
+        width: '60%', zIndex: 1,
       }}>
         {/* White slash border */}
         <div style={{
           position: 'absolute', left: 0, top: 0, bottom: 0, right: 0,
-          background: '#ffffff',
+          background: '#000000',
           clipPath: 'polygon(15% 0%, 100% 0%, 100% 100%, 0% 100%)',
           transform: 'translateX(-4px)',
         }} />
@@ -34,7 +32,7 @@ export default function AdminHero() {
       </div>
 
       {/* Left Content */}
-      <div style={{ position: 'relative', zIndex: 5, maxWidth: '500px' }}>
+      <div style={{ position: 'relative', zIndex: 5, width: 'min(100%, 620px)', paddingRight: '24px' }}>
         <span style={{
           display: 'inline-block', color: 'var(--red)',
           fontSize: '0.72rem', fontWeight: 700,
@@ -44,19 +42,25 @@ export default function AdminHero() {
         </span>
         <h1 style={{
           fontSize: 'clamp(2rem, 3.2vw, 2.8rem)',
-          fontWeight: 900, color: 'var(--white)',
+          fontWeight: 900, color: '#000000',
           lineHeight: 1.15, marginBottom: '18px', letterSpacing: '-0.5px',
         }}>
           Manage Portal<br />
           Overview<span style={{ color: 'var(--red)' }}>.</span>
         </h1>
         <p style={{
-          color: '#ffffff', fontSize: '0.875rem',
-          lineHeight: 1.6, marginBottom: '32px', maxWidth: '420px',
+          color: '#444444', fontSize: '0.875rem',
+          lineHeight: 1.6, marginBottom: '28px', maxWidth: '460px',
         }}>
           Monitor products, manage warranty claims, and oversee repairs efficiently from a central dashboard.
         </p>
-        <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(145px, 1fr))',
+          gap: '14px 18px',
+          width: '100%',
+          maxWidth: '620px',
+        }}>
           {[
             {
               icon: (
@@ -86,17 +90,27 @@ export default function AdminHero() {
               ),
               title: 'Digital Certificate', sub: 'Download PDF',
             },
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#E8001D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points="14 2 14 8 20 8" stroke="#E8001D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M12 18v-6M9.5 14.5L12 12l2.5 2.5" stroke="#E8001D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ),
+              title: 'Upload Warranty', sub: 'PDF Document',
+            },
           ].map(({ icon, title, sub }) => (
-            <div key={title} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div key={title} style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
               <div style={{
-                width: '38px', height: '38px', borderRadius: '50%',
+                width: '40px', height: '40px', borderRadius: '50%',
                 border: '1.5px solid rgba(232,0,29,0.5)',
                 background: 'rgba(232,0,29,0.06)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>{icon}</div>
-              <div>
-                <div style={{ color: 'var(--white)', fontSize: '0.82rem', fontWeight: 700 }}>{title}</div>
-                <div style={{ color: '#ffffff', fontSize: '0.72rem', marginTop: '2px' }}>{sub}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ color: '#000000', fontSize: '0.82rem', fontWeight: 700, lineHeight: 1.25 }}>{title}</div>
+                <div style={{ color: '#666666', fontSize: '0.72rem', marginTop: '3px', lineHeight: 1.25 }}>{sub}</div>
               </div>
             </div>
           ))}

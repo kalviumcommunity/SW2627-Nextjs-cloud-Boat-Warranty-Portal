@@ -33,10 +33,26 @@ export default function SignUpPage() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  const handleSendOtp = (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
-    setIsOtpSent(true);
-    setCountdown(30);
+    if (!formData.email) {
+      alert("Please enter your email first to receive OTP.");
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      setIsOtpSent(true);
+      setCountdown(30);
+      alert("OTP sent to your email!");
+    } catch (err) {
+      alert(err.message || "Failed to send OTP");
+    }
   };
 
   const handleChange = (field, value) => {
@@ -75,7 +91,8 @@ export default function SignUpPage() {
         name: formData.fullName,
         email: formData.email,
         phone: formData.phone,
-        password: formData.password
+        password: formData.password,
+        otp: formData.otp
       });
       // All fields filled & registered — redirect to login
       router.push('/login');

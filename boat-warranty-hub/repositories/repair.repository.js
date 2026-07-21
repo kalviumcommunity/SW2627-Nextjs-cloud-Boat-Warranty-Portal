@@ -7,16 +7,17 @@ export async function createRepair(data){
 }
 
 export async function findRepairById(id){
-    return await prisma.repair.findMany({
-        where:{id}
-    })
+    return prisma.repair.findUnique({
+        where: { id }
+    });
 }
 
 
 export async function findRepairByProductId(productId){
-    return await prisma.repair.findMany({
-        where:{productId}
-    })
+    return prisma.repair.findMany({
+        where: { productId },
+        orderBy: { repairDate: "desc" }
+    });
 }
 
 export async function updateRepair(id,data){

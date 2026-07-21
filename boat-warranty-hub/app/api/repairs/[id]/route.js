@@ -3,11 +3,22 @@ import { editRepair, getRepairById, removeRepair } from "../../../../services/re
 import { updateRepairSchema } from "../../../../lib/validations";
 import logger from "@/lib/logger";
 
+function parseRepairId(id) {
+    const repairId = Number(id);
+    return Number.isSafeInteger(repairId) && repairId > 0 ? repairId : null;
+}
+
 export async function GET(request, context) {
     try {
         const { id } = await context.params;
-        const repairId = Number(id);
+        const repairId = parseRepairId(id);
+        if (!repairId) {
+            return NextResponse.json({ success: false, message: "Invalid repair ID" }, { status: 400 });
+        }
         const repair = await getRepairById(repairId);
+        if (!repair) {
+            return NextResponse.json({ success: false, message: "Repair not found" }, { status: 404 });
+        }
         return NextResponse.json({
             success: true,
             data: repair
@@ -24,7 +35,10 @@ export async function GET(request, context) {
 export async function PUT(request, context) {
     try {
         const { id } = await context.params;
-        const repairId = Number(id);
+        const repairId = parseRepairId(id);
+        if (!repairId) {
+            return NextResponse.json({ success: false, message: "Invalid repair ID" }, { status: 400 });
+        }
         const body = await request.json();
         const validation = updateRepairSchema.safeParse(body);
         if(!validation.success){
@@ -51,7 +65,10 @@ export async function PUT(request, context) {
 export async function DELETE(request, context) {
     try {
         const { id } = await context.params;
-        const repairId = Number(id);
+        const repairId = parseRepairId(id);
+        if (!repairId) {
+            return NextResponse.json({ success: false, message: "Invalid repair ID" }, { status: 400 });
+        }
         const deletedRepair = await removeRepair(repairId);
         return NextResponse.json({
             success: true,

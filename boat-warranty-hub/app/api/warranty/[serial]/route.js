@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { verifyWarranty } from "../../../../services/warranty.service";
+import { getWarrantyDetails } from "../../../../services/warranty.service";
 
 export async function GET(request,{params}){
 
     const {serial} = await params
 
-    const result = await verifyWarranty(serial);
+    const result = await getWarrantyDetails(serial);
 
     if(!result){
         return NextResponse.json({

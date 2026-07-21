@@ -1,17 +1,40 @@
 import { createUser, findUserByEmail } from "../repositories/user.repository";
 import bcrypt from "bcryptjs";
 
+import {prisma} from "@/lib/prisma";
 
 export async function registration(data){
-    const existingUser = await findUserByEmail(data.email);
+    const { otp, ...userData } = data;
+
+    const existingUser = await findUserByEmail(userData.email);
 
     if(existingUser){
         throw new Error("User already exists");
     }
 
-    const hashedPassword = await bcrypt.hash(data.password,10);
+    // Verify OTP
+    const otpRecord = await prisma.otp.findUnique({
+        where: { email: userData.email }
+    });
 
-    const user = await createUser({...data,password:hashedPassword,role:'USER'});
+    if (!otpRecord) {
+        throw new Error("OTP not found or expired. Please request a new one.");
+    }
+
+    if (otpRecord.code !== otp) {
+        throw new Error("Invalid OTP");
+    }
+
+    if (otpRecord.expiresAt < new Date()) {
+        throw new Error("OTP has expired");
+    }
+
+    const hashedPassword = await bcrypt.hash(userData.password,10);
+
+    const user = await createUser({...userData, password:hashedPassword, role:'USER', isVerified: true});
+
+    // Delete OTP after successful registration
+    await prisma.otp.delete({ where: { email: userData.email } });
 
     const {password, ...safeUser} = user;
 

@@ -20,12 +20,12 @@ export default function AdminCTA({ stats }) {
       const res = await fetch(`/api/warranty/${encodeURIComponent(serial)}`);
       if (res.ok) {
         setError('');
-        router.push('/warranty-result?serial=' + encodeURIComponent(serial));
+        router.push('/admin/warranty-lookup?serial=' + encodeURIComponent(serial));
       } else {
         const data = await res.json();
         setError(data.message || 'Product not found.');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred connecting to the server.');
     } finally {
       setLoading(false);
@@ -33,30 +33,30 @@ export default function AdminCTA({ stats }) {
   };
 
   const statCards = [
-    { label: 'Total Products', value: stats?.totalProducts ?? '-', icon: 'M20 12V8H6a2 2 0 01-2-2c0-1.1.9-2 2-2h12v4' },
+    { label: 'Total Products', value: stats?.totalProducts ?? '-', icon: 'M3 7l9 5 9-5M3 7l9-5 9 5M3 7v10l9 5 9-5V7M12 12v10' },
     { label: 'Active Warranties', value: stats?.activeWarranties ?? '-', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
     { label: 'Expired Warranties', value: stats?.expiredWarranties ?? '-', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
     { label: 'Total Repairs', value: stats?.totalRepairs ?? '-', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
-    { label: 'Pending Repairs', value: stats?.pendingRepairs ?? '-', icon: 'M12 8v4l3 3' },
+    { label: 'Pending Repairs', value: stats?.pendingRepairs ?? '-', icon: 'M12 22a10 10 0 100-20 10 10 0 000 20zM12 6v6l4 2' },
     { label: 'Completed Repairs', value: stats?.completedRepairs ?? '-', icon: 'M5 13l4 4L19 7' }
   ];
 
   return (
-    <div style={{ position: 'relative', zIndex: 10, marginTop: '-30px', padding: '0 64px 80px', background: 'transparent' }}>
+    <div style={{ position: 'relative', zIndex: 10, marginTop: '-30px', padding: '0 clamp(24px, 5vw, 64px) 80px', background: 'transparent', width: '100%', boxSizing: 'border-box' }}>
       
       {/* Stats Grid */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '20px',
+        gap: '18px',
         marginBottom: '40px'
       }}>
         {statCards.map((stat, idx) => (
           <div key={idx} style={{
-            background: '#111111',
+            background: '#ffffff',
             borderRadius: '12px',
             padding: '24px',
-            border: '1px solid var(--red)',
+            border: '1px solid #e8e8e8',
             display: 'flex',
             alignItems: 'center',
             gap: '20px'
@@ -72,10 +72,10 @@ export default function AdminCTA({ stats }) {
               </svg>
             </div>
             <div>
-              <div style={{ color: '#ffffff', fontSize: '0.9rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+              <div style={{ color: '#666666', fontSize: '0.9rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
                 {stat.label}
               </div>
-              <div style={{ color: 'var(--white)', fontSize: '2rem', fontWeight: 800 }}>
+              <div style={{ color: '#000000', fontSize: '2rem', fontWeight: 800 }}>
                 {stat.value}
               </div>
             </div>
@@ -85,17 +85,17 @@ export default function AdminCTA({ stats }) {
 
       {/* Main Warranty Input Card */}
       <div style={{
-        background: '#111111', borderRadius: '16px',
+        background: '#ffffff', borderRadius: '16px',
         padding: '28px 32px 22px',
-        border: '1px solid var(--red)',
+        border: '1px solid #e8e8e8',
         marginBottom: '20px'
       }}>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'stretch' }}>
           {/* Input Container */}
           <div style={{
             flex: 1, display: 'flex', alignItems: 'center', gap: '14px',
-            border: '2px solid #ffffff', borderRadius: '10px',
-            padding: '14px 16px', background: '#000000',
+            border: '2px solid #e8e8e8', borderRadius: '10px',
+            padding: '14px 16px', background: '#f5f5f5',
           }}>
             {/* SN Badge */}
             <div style={{
@@ -115,11 +115,11 @@ export default function AdminCTA({ stats }) {
                 maxLength={20}
                 style={{
                   border: 'none', outline: 'none', fontSize: '0.92rem',
-                  fontFamily: 'inherit', color: '#ffffff',
+                  fontFamily: 'inherit', color: '#000000',
                   background: 'transparent', fontWeight: 500, width: '100%',
                 }}
               />
-              <span style={{ fontSize: '0.72rem', color: '#ffffff' }}>e.g. SN1234567890</span>
+              <span style={{ fontSize: '0.72rem', color: '#666666' }}>e.g. SN1234567890</span>
             </div>
           </div>
 
@@ -155,10 +155,10 @@ export default function AdminCTA({ stats }) {
 
       {/* Add New Product Card */}
       <div style={{
-        background: '#111111',
+        background: '#ffffff',
         borderRadius: '14px',
         padding: '24px',
-        border: '1px solid var(--red)',
+        border: '1px solid #e8e8e8',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -177,10 +177,10 @@ export default function AdminCTA({ stats }) {
             </svg>
           </div>
           <div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', margin: '0 0 8px 0' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#000000', margin: '0 0 8px 0' }}>
               Add New Product
             </h3>
-            <p style={{ fontSize: '0.9rem', color: '#ffffff', margin: 0 }}>
+            <p style={{ fontSize: '0.9rem', color: '#666666', margin: 0 }}>
               Add a new product to the system by entering product details and serial information.
             </p>
           </div>
@@ -188,7 +188,7 @@ export default function AdminCTA({ stats }) {
 
         <Link
           id="add-new-product-btn"
-          href="/Add product"
+          href="/add-product"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
             background: 'var(--red)', color: '#ffffff',
