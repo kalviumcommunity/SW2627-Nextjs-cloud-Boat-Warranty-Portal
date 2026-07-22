@@ -2,7 +2,9 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import UserNavbar from '@/components/layout/UserNavbar';
+import GlobalLoading from '../loading';
 
 const STATUS_OPTIONS = ['Under Process', 'Repaired', 'Pending', 'Rejected'];
 const statusStyle = {
@@ -38,7 +40,16 @@ function RepairContent() {
   const [error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState('All');
 
+  const { data: session, status } = useSession();
+
   useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push(`/login?callbackUrl=/repair?serial=${encodeURIComponent(serial)}`);
+    }
+  }, [status, router, serial]);
+
+  useEffect(() => {
+    if (status !== 'authenticated') return;
     if (!serial) {
       return;
     }
@@ -59,7 +70,7 @@ function RepairContent() {
       }
     };
     fetchRepairs();
-  }, [serial]);
+  }, [status, serial]);
 
   const toggleRow = (id) => {
     setExpandedRows(prev => ({
@@ -104,6 +115,10 @@ function RepairContent() {
     link.click();
     URL.revokeObjectURL(url);
   };
+
+  if (status === 'loading' || status === 'unauthenticated' || (loading && serial)) {
+    return <GlobalLoading />;
+  }
 
   return (
     <main style={{ background: '#f5f5f5', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif' }}>
@@ -558,7 +573,7 @@ function RepairContent() {
 
 export default function RepairPage() {
   return (
-    <Suspense fallback={<div style={{ background: '#f5f5f5', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', color: '#888' }}>Loading...</div>}>
+    <Suspense fallback={<GlobalLoading />}>
       <RepairContent />
     </Suspense>
   );

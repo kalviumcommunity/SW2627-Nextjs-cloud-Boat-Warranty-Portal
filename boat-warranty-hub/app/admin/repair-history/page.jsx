@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import AdminNavbar from '@/components/layout/AdminSidebar';
+import { showToast } from '@/components/common/BoatToast';
 
 // ── Status config ─────────────────────────────────────────────────────────────
 const STATUS_OPTIONS = ['Under Process', 'Repaired', 'Pending', 'Rejected'];
@@ -162,28 +163,7 @@ function StatusModal({ record, onClose, onSave }) {
   );
 }
 
-// ── Toast notification ────────────────────────────────────────────────────────
-function Toast({ message, onDone }) {
-  useEffect(() => {
-    const t = setTimeout(onDone, 2800);
-    return () => clearTimeout(t);
-  }, [onDone]);
-  return (
-    <div style={{
-      position: 'fixed', bottom: '28px', right: '28px', zIndex: 2000,
-      background: '#111', color: '#fff', borderRadius: '12px',
-      padding: '14px 22px', fontSize: '0.88rem', fontWeight: 600,
-      boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
-      display: 'flex', alignItems: 'center', gap: '10px',
-      animation: 'slideUp 0.3s ease',
-    }}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5">
-        <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      {message}
-    </div>
-  );
-}
+// ── Toast notification (Replaced by global showToast) ─────────────────────────
 
 // ── Page content ──────────────────────────────────────────────────────────────
 function AdminRepairHistoryContent({ admin }) {
@@ -197,7 +177,6 @@ function AdminRepairHistoryContent({ admin }) {
   const [showMore, setShowMore] = useState(false);
   const [expandedRows, setExpandedRows] = useState({});
   const [modalRecord, setModalRecord] = useState(null);
-  const [toast, setToast] = useState(null);
   const [filterStatus, setFilterStatus] = useState('All');
 
   useEffect(() => {
@@ -230,6 +209,7 @@ function AdminRepairHistoryContent({ admin }) {
   };
 
   const downloadCsv = () => {
+    showToast.process('Exporting repair records CSV...', 'CSV EXPORT');
     const headers = ['Serial Number', 'Repair ID', 'Repair Date', 'Issue Reported', 'Status', 'Technician Notes', 'Estimated Completion'];
     const lines = filtered.map((row) => [
       serial,
@@ -247,9 +227,11 @@ function AdminRepairHistoryContent({ admin }) {
     link.download = `repair-history-${serial || 'product'}-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+    showToast.success('Repair history CSV downloaded successfully!', 'EXPORT COMPLETE');
   };
 
   const handleSaveStatus = async (id, newStatus, note) => {
+    showToast.process(`Updating status for Repair Ticket #${id}...`, 'UPDATING');
     try {
       const response = await fetch(`/api/repairs/${id}`, {
         method: 'PUT',
@@ -266,14 +248,16 @@ function AdminRepairHistoryContent({ admin }) {
       if (response.ok && result.success) {
         setRecords(prev => prev.map(r => r.id === id ? result.data : r));
         setModalRecord(null);
-        setToast(`Record #${id} updated successfully`);
+        showToast.success(`Repair Ticket #${id} status updated to ${statusLabel(newStatus)}`, 'STATUS UPDATED');
       } else {
-        alert(result.message || 'Failed to update record');
+        const errorMsg = result.message || 'Failed to update record';
+        showToast.error(errorMsg, 'UPDATE FAILED');
       }
     } catch {
-      alert('Error connecting to server.');
+      showToast.error('Error connecting to server while updating repair status.', 'CONNECTION ERROR');
     }
   };
+
 
   const statusCounts = ['IN_PROGRESS', 'COMPLETED', 'PENDING', 'CANCELLED'].reduce((acc, s) => {
     acc[s] = records.filter(r => r.repairStatus === s).length;
@@ -587,9 +571,6 @@ function AdminRepairHistoryContent({ admin }) {
           onSave={handleSaveStatus}
         />
       )}
-
-      {/* Toast */}
-      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
     </main>
   );
 }

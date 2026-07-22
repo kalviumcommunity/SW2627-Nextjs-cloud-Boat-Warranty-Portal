@@ -49,3 +49,12 @@ export async function countCompletedRepairs() {
         where: {repairStatus: "COMPLETED"}
     });
 }
+
+export async function getRecentRepairs(limit = 10) {
+    return prisma.repair.findMany({
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: { product: true }
+    });
+}
+

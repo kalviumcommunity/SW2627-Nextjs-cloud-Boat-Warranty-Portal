@@ -7,6 +7,7 @@ export default function UserNavbar() {
   const { data: session } = useSession();
   const user = session?.user || null;
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const handleLogout = async () => {
     setShowDropdown(false);
@@ -43,13 +44,12 @@ export default function UserNavbar() {
       {/* Nav Links */}
       <ul style={{ display: 'flex', listStyle: 'none', gap: '2px', flexShrink: 0 }}>
         {[
-          { label: 'Categories', arrow: true },
-          { label: 'Daily Deals', arrow: false },
-          { label: 'Gift with boAt', arrow: false },
-          { label: 'More', arrow: true },
-        ].map(({ label, arrow }) => (
+          { label: 'Categories', arrow: true, href: '#' },
+          { label: 'Daily Deals', arrow: false, href: '#' },
+          { label: 'Gift with boAt', arrow: false, href: '#' },
+        ].map(({ label, arrow, href }) => (
           <li key={label}>
-            <Link href="#" style={{
+            <Link href={href} style={{
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
@@ -73,6 +73,75 @@ export default function UserNavbar() {
             </Link>
           </li>
         ))}
+        {/* Interactive More Dropdown */}
+        <li 
+          onMouseEnter={() => setShowMore(true)}
+          onMouseLeave={() => setShowMore(false)}
+          style={{ position: 'relative' }}
+        >
+          <button style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '6px 10px',
+            color: showMore ? 'white' : 'var(--gray-300)',
+            background: showMore ? 'rgba(255,255,255,0.06)' : 'transparent',
+            fontSize: '0.82rem',
+            fontWeight: 500,
+            borderRadius: '6px',
+            textDecoration: 'none',
+            transition: 'color 0.2s, background 0.2s',
+            cursor: 'pointer',
+            border: 'none',
+            fontFamily: 'inherit'
+          }}>
+            More
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ transform: showMore ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+              <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          
+          {showMore && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              background: '#141414',
+              border: '1px solid #2a2a2a',
+              borderRadius: '8px',
+              padding: '6px 0',
+              minWidth: '150px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              display: 'flex',
+              flexDirection: 'column',
+              zIndex: 1000,
+              marginTop: '4px',
+            }}>
+              {[
+                { label: 'About Us', href: '/about' },
+                { label: 'FAQs', href: '/faq' },
+                { label: 'Contact Us', href: '/contact' },
+              ].map((item) => (
+                <Link 
+                  key={item.label}
+                  href={item.href} 
+                  style={{ 
+                    padding: '8px 16px', 
+                    color: 'var(--gray-300)', 
+                    fontSize: '0.82rem', 
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                    transition: 'background 0.2s, color 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'white'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--gray-300)'; e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </li>
       </ul>
 
       {/* Search Bar */}

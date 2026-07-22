@@ -1,3 +1,6 @@
+'use client';
+import Link from 'next/link';
+
 const trustItems = [
   {
     id: 'trust-secure',
@@ -49,50 +52,109 @@ export default function Footer() {
   return (
     <footer style={{
       background: 'var(--black)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '28px 48px',
       borderTop: '1px solid #222',
+      padding: '40px 24px 30px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '30px',
+      width: '100%',
+      boxSizing: 'border-box',
     }}>
-      {trustItems.map((item, idx) => (
-        <div
-          key={item.id}
-          id={item.id}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px',
-            flex: 1,
-            maxWidth: '240px',
-            padding: '12px 24px',
-            position: 'relative',
-            borderRight: idx < trustItems.length - 1 ? '1px solid #2a2a2a' : 'none',
-          }}
-        >
-          <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '50%',
-            border: '1.5px solid rgba(232,0,29,0.4)',
-            background: 'rgba(232,0,29,0.07)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            {item.icon}
-          </div>
-          <div>
-            <div style={{ color: 'var(--white)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '3px' }}>
-              {item.title}
+      {/* Top Tier: Trust Badges */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '20px 0',
+        width: '100%',
+        maxWidth: '1200px',
+      }}>
+        {trustItems.map((item, idx) => (
+          <div
+            key={item.id}
+            id={item.id}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              flex: '1 1 230px',
+              maxWidth: '280px',
+              padding: '12px 24px',
+              boxSizing: 'border-box',
+              borderRight: idx < trustItems.length - 1 ? '1px solid #2a2a2a' : 'none',
+            }}
+          >
+            <div style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              border: '1.5px solid rgba(232,0,29,0.4)',
+              background: 'rgba(232,0,29,0.07)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              {item.icon}
             </div>
-            <div style={{ color: '#777', fontSize: '0.72rem' }}>
-              {item.desc}
+            <div>
+              <div style={{ color: 'var(--white)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '3px' }}>
+                {item.title}
+              </div>
+              <div style={{ color: '#777', fontSize: '0.72rem', lineHeight: 1.3 }}>
+                {item.desc}
+              </div>
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Horizontal Divider Line */}
+      <div style={{ width: '100%', maxWidth: '1200px', height: '1px', background: '#222' }} />
+
+      {/* Bottom Tier: Links & Copyright */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '16px',
+        width: '100%',
+        maxWidth: '1200px',
+        fontSize: '0.78rem',
+        color: '#666',
+        padding: '0 12px',
+        boxSizing: 'border-box',
+      }}>
+        <div>
+          © {new Date().getFullYear()} boAt Warranty Portal. Official Support Services.
         </div>
-      ))}
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          {[
+            { label: 'About Us', href: '/about' },
+            { label: 'FAQs', href: '/faq' },
+            { label: 'Contact Support', href: '/contact' },
+          ].map((link) => (
+            <Link 
+              key={link.label}
+              href={link.href} 
+              style={{
+                color: '#888',
+                textDecoration: 'none',
+                transition: 'color 0.2s',
+                fontWeight: 500,
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}
+              onMouseLeave={e => e.currentTarget.style.color = '#888'}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </div>
     </footer>
   );
 }

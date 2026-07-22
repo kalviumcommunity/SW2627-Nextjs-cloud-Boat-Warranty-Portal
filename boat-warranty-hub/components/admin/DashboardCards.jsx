@@ -1,7 +1,15 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { showToast } from '@/components/common/BoatToast';
+
+const CONTEXT_COLORS = {
+  success: '#10b981',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  process: '#3b82f6',
+};
 
 export default function AdminCTA({ stats }) {
   const [serial, setSerial] = useState('');
@@ -9,24 +17,50 @@ export default function AdminCTA({ stats }) {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifs, setLoadingNotifs] = useState(true);
+
+  useEffect(() => {
+    async function fetchNotifs() {
+      try {
+        const res = await fetch('/api/admin/notifications');
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setNotifications(data.data || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch admin notifications:', err);
+      } finally {
+        setLoadingNotifs(false);
+      }
+    }
+
+    fetchNotifs();
+  }, []);
 
   const handleVerify = async () => {
     if (!serial) {
       setError('Please enter a serial number.');
+      showToast.warning('Please enter a serial number before verifying.', 'INPUT REQUIRED');
       return;
     }
     setLoading(true);
+    showToast.process(`Looking up serial number ${serial}...`, 'WARRANTY SEARCH');
     try {
       const res = await fetch(`/api/warranty/${encodeURIComponent(serial)}`);
       if (res.ok) {
         setError('');
+        showToast.success(`Product record found for ${serial}! Redirecting...`, 'PRODUCT FOUND');
         router.push('/admin/warranty-lookup?serial=' + encodeURIComponent(serial));
       } else {
         const data = await res.json();
-        setError(data.message || 'Product not found.');
+        const msg = data.message || 'Product not found.';
+        setError(msg);
+        showToast.error(msg, 'SEARCH FAILED');
       }
     } catch {
       setError('An error occurred connecting to the server.');
+      showToast.error('An error occurred connecting to the server.', 'CONNECTION ERROR');
     } finally {
       setLoading(false);
     }
@@ -163,6 +197,7 @@ export default function AdminCTA({ stats }) {
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '20px',
+        marginBottom: '24px',
       }}>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <div style={{
@@ -204,6 +239,133 @@ export default function AdminCTA({ stats }) {
             <path d="M5 12h14M13 6l6 6-6 6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Link>
+      </div>
+
+      {/* Admin Repair Notifications & Live Alerts Section */}
+      <div style={{
+        background: '#0a0a0a',
+        border: '1.5px solid #e8001d',
+        borderRadius: '0px', // sharp borders boAt style
+        padding: '28px',
+        boxShadow: '0 16px 40px rgba(0,0,0,0.8), 0 0 20px rgba(232,0,29,0.25)',
+        position: 'relative',
+        overflow: 'hidden',
+        clipPath: 'polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px)',
+      }}>
+        {/* Header bar */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '1px solid #222222',
+          paddingBottom: '18px',
+          marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              background: '#e8001d',
+              color: '#ffffff',
+              padding: '4px 10px',
+              fontSize: '0.72rem',
+              fontWeight: 900,
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+            }}>
+              [ADMIN NOTIFICATIONS]
+            </div>
+            <h2 style={{ color: '#ffffff', fontSize: '1.35rem', fontWeight: 900, margin: 0 }}>
+              Recent Repair Requests &amp; Live Alerts
+            </h2>
+          </div>
+          <span style={{ color: '#888888', fontSize: '0.8rem', fontWeight: 600 }}>
+            Color Coded Context: <span style={{ color: '#10b981' }}>Green (Success)</span> • <span style={{ color: '#f59e0b' }}>Yellow (Warning)</span> • <span style={{ color: '#ef4444' }}>Red (Error)</span> • <span style={{ color: '#3b82f6' }}>Blue (Process)</span>
+          </span>
+        </div>
+
+        {loadingNotifs ? (
+          <p style={{ color: '#888', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>Loading repair notifications...</p>
+        ) : notifications.length === 0 ? (
+          <p style={{ color: '#888', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>No repair request notifications recorded yet.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {notifications.slice(0, 5).map((notif) => {
+              const ctxColor = CONTEXT_COLORS[notif.context] || '#3b82f6';
+              return (
+                <div
+                  key={notif.id}
+                  style={{
+                    background: '#121212',
+                    border: `1.5px solid ${ctxColor}55`,
+                    borderLeft: `5px solid ${ctxColor}`,
+                    padding: '16px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    borderRadius: '0px', // Sharp
+                    boxShadow: `0 4px 16px rgba(0,0,0,0.6), 0 0 10px ${ctxColor}22`,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flex: 1 }}>
+                    <div style={{
+                      width: '36px', height: '36px',
+                      background: `${ctxColor}18`,
+                      border: `1px solid ${ctxColor}66`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: ctxColor, fontWeight: 900, fontSize: '0.85rem', flexShrink: 0,
+                    }}>
+                      !
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                        <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '0.95rem' }}>
+                          {notif.title}
+                        </span>
+                        <span style={{
+                          color: ctxColor,
+                          background: `${ctxColor}22`,
+                          border: `1px solid ${ctxColor}66`,
+                          fontSize: '0.68rem',
+                          fontWeight: 900,
+                          padding: '2px 8px',
+                          textTransform: 'uppercase',
+                        }}>
+                          [{notif.status}]
+                        </span>
+                        <span style={{ color: '#666666', fontSize: '0.75rem' }}>
+                          {new Date(notif.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p style={{ color: '#cccccc', fontSize: '0.86rem', margin: 0, lineHeight: 1.4 }}>
+                        {notif.message}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href={`/admin/repair-history?serial=${encodeURIComponent(notif.serialNumber)}`}
+                    style={{
+                      background: '#e8001d',
+                      color: '#ffffff',
+                      textDecoration: 'none',
+                      fontSize: '0.82rem',
+                      fontWeight: 800,
+                      padding: '10px 18px',
+                      whiteSpace: 'nowrap',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      clipPath: 'polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)',
+                    }}
+                  >
+                    View Ticket →
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

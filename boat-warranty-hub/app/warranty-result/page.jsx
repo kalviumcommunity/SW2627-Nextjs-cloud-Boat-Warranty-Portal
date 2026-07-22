@@ -3,8 +3,11 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import UserNavbar from '@/components/layout/UserNavbar';
 import Footer from '@/components/layout/Footer';
+import GlobalLoading from '../loading';
+import { showToast } from '@/components/common/BoatToast';
 
 // Default templates for smart merging
 const categoryTemplates = {
@@ -74,12 +77,15 @@ function WarrantyResultContent() {
   const handleRepairSubmit = async (e) => {
     e.preventDefault();
     if (!issueText || issueText.trim().length === 0) {
-      setRepairMsg({ type: 'error', text: "Please write your issue / complaint before submitting." });
+      const warningText = "Please write your issue / complaint before submitting.";
+      setRepairMsg({ type: 'error', text: warningText });
+      showToast.warning(warningText, 'DETAILS REQUIRED');
       return;
     }
 
     setSubmittingRepair(true);
     setRepairMsg({ type: '', text: '' });
+    showToast.process('Submitting repair request to boAt support...', 'SUBMITTING');
 
     try {
       const res = await fetch(`/api/warranty/${encodeURIComponent(serial)}/repairs`, {
@@ -94,14 +100,27 @@ function WarrantyResultContent() {
       }
 
       setRepairCreatedData(data.data);
+      showToast.success(`Repair Ticket #${data.data.id} logged! Admin has been notified.`, 'REPAIR REQUESTED');
     } catch (err) {
       setRepairMsg({ type: 'error', text: err.message });
+      showToast.error(err.message, 'SUBMISSION FAILED');
     } finally {
       setSubmittingRepair(false);
     }
   };
 
+
+  const { data: session, status } = useSession();
+
   useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push(`/login?callbackUrl=/warranty-result?serial=${encodeURIComponent(serial)}`);
+    }
+  }, [status, router, serial]);
+
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+
     async function fetchWarranty() {
       if (!serial) {
         setError('No serial number provided.');
@@ -169,14 +188,10 @@ function WarrantyResultContent() {
     }
     
     fetchWarranty();
-  }, [serial]);
+  }, [status, serial]);
 
-  if (loading) {
-    return (
-      <main style={{ background: '#f5f5f5', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ color: '#888', fontSize: '1.2rem' }}>Verifying warranty details...</div>
-      </main>
-    );
+  if (status === 'loading' || status === 'unauthenticated' || loading) {
+    return <GlobalLoading />;
   }
 
   if (error || !product) {
@@ -335,7 +350,10 @@ function WarrantyResultContent() {
                     {row.copy && (
                       <button
                         title="Copy serial number"
-                        onClick={() => navigator.clipboard.writeText(serial)}
+                        onClick={() => {
+                          navigator.clipboard.writeText(serial);
+                          showToast.success(`Serial number ${serial} copied to clipboard!`, 'COPIED');
+                        }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: 0 }}
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -486,10 +504,10 @@ function WarrantyResultContent() {
                   primary: true,
                   onClick: () => {
                     if (product.id) {
-                      alert('Downloading your warranty certificate...');
+                      showToast.process('Generating official warranty certificate PDF...', 'DOWNLOADING');
                       window.open(`/api/products/${product.id}/warranty-pdf`, '_blank');
                     } else {
-                      alert('Warranty ID is missing, cannot download PDF.');
+                      showToast.error('Warranty ID is missing, cannot download PDF.', 'ERROR');
                     }
                   }
                 },

@@ -1,16 +1,20 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export default function CTA({ badgeType }) {
   const [serial, setSerial] = useState('');
   const [error, setError] = useState('');
 
   const router = useRouter();
+  const { status } = useSession();
 
   const handleVerify = () => {
     if (!serial.trim()) {
       setError('Please enter a serial number.');
+    } else if (status !== 'authenticated') {
+      router.push(`/login?callbackUrl=/warranty-result?serial=${encodeURIComponent(serial)}`);
     } else {
       setError('');
       router.push(`/warranty-result?serial=${encodeURIComponent(serial)}`);

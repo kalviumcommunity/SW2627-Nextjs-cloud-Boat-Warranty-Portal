@@ -1,7 +1,14 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from "react-hot-toast";
 
 export function Providers({ children }) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return (
+    <SessionProvider>
+      {children}
+      <Toaster position="top-right" reverseOrder={false} toastOptions={{ duration: 4500 }} />
+    </SessionProvider>
+  );
 }
+

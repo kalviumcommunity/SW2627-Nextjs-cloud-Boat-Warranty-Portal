@@ -31,7 +31,8 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/home');
+      const callbackUrl = (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('callbackUrl')) || '/home';
+      router.push(callbackUrl);
     } catch (error) {
       console.error('Login error:', error);
       setErrorMessage(error.message || 'Login failed. Please try again.');
