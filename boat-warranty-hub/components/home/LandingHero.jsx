@@ -123,8 +123,8 @@ export default function LandingHero() {
             }}
           >
             I am a{' '}
-            <span style={{ color: '#E31E24', fontStyle: 'italic' }}>
-              boAt
+            <span>
+              bo<span style={{ color: '#E31E24' }}>A</span>t
             </span>
             head.
           </h1>
