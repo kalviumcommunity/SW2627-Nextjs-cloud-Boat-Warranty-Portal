@@ -4,9 +4,9 @@ import { getRepairsByProductId } from "@/services/repair.service";
 import { createRepair } from "@/repositories/repair.repository";
 import logger from "@/lib/logger";
 
-export async function GET(request, { params }) {
+export async function GET(request, context) {
     try {
-        const { serial } = await params;
+        const { serial } = await context.params;
         const product = await findProductBySerialNumber(serial);
         
         if (!product) {

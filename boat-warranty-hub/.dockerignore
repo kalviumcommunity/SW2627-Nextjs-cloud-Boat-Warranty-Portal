@@ -1,0 +1,63 @@
+# ============================================
+# .dockerignore — boAt Warranty Hub
+# ============================================
+# Keeps the Docker build context small and fast.
+# Prevents secrets and unnecessary files from being
+# copied into the Docker image during build.
+# ============================================
+
+# ── Dependencies (installed inside container) ──
+node_modules
+.pnp
+.pnp.*
+.yarn
+
+# ── Build artifacts ──
+.next
+out
+build
+coverage
+.swc
+
+# ── Version control ──
+.git
+.gitignore
+
+# ── Secrets (NEVER bake into images) ──
+.env
+.env.*
+!.env.example
+credentials/
+
+# ── IDE & OS files ──
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+
+# ── Logs ──
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Debug / temp files ──
+tree.txt
+filtered_tree.txt
+filtered_tree_utf8.txt
+db.json
+
+# ── Documentation (not needed in image) ──
+DOCS/
+README.md
+DOCKER.md
+AGENTS.md
+CLAUDE.md
+
+# ── Docker files (avoid recursive copies) ──
+Dockerfile
+Dockerfile.dev
+docker-compose.yml
+docker-compose.prod.yml
+Makefile
