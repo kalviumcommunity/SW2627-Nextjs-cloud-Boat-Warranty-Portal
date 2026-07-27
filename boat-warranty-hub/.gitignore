@@ -30,8 +30,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (NEVER commit .env with real secrets)
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel
@@ -40,6 +42,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# prisma generated client
 /lib/generated/prisma
 
+# secrets
 credentials/
+
+# debug / temp files
+tree.txt
+filtered_tree.txt
+filtered_tree_utf8.txt

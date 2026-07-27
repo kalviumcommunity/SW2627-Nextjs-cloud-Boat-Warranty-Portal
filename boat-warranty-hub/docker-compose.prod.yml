@@ -1,0 +1,32 @@
+# ============================================
+# docker-compose.prod.yml — Production Overrides
+# boAt Warranty Hub
+# ============================================
+# This file EXTENDS docker-compose.yml for production deployments.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+#
+# What changes from dev:
+#   - Uses production Dockerfile (multi-stage, ~150MB image)
+#   - No bind mounts (source code is baked into the image)
+#   - No database port exposure to host
+#   - Production NODE_ENV
+#   - Stronger restart policies
+# ============================================
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      # Override dev bind mounts — only keep credentials mount for GCS
+      - ./credentials:/app/credentials:ro
+    environment:
+      NODE_ENV: production
+    restart: always
+
+  database:
+    ports: []
+    restart: always

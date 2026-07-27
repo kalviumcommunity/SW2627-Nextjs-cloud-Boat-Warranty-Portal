@@ -4,7 +4,8 @@ import logger from "./lib/logger";
 
 
 const PUBLIC_ROUTES = [
-    "/api/health"
+    "/api/health",
+    "/api/dashboard/stats"
 ];
 
 
