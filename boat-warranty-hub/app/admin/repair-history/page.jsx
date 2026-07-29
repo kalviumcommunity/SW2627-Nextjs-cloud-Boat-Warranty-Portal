@@ -445,8 +445,10 @@ function AdminRepairHistoryContent({ admin }) {
                         </div>
                       </td>
                       {/* Issue */}
-                      <td style={{ padding: '18px 12px', fontSize: '0.88rem', fontWeight: 600, color: '#222', cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>
-                        {row.issue}
+                      <td style={{ padding: '18px 12px', fontSize: '0.88rem', fontWeight: 600, color: '#222', cursor: 'pointer' }}>
+                        <Link href={`/admin/repair-history/${row.id}`} onClick={(e) => e.stopPropagation()} style={{ color: '#e8001d', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+                          {row.issue}
+                        </Link>
                       </td>
                       {/* Center */}
                       <td style={{ padding: '18px 12px', fontSize: '0.82rem', color: '#444', lineHeight: 1.4, cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>
@@ -502,7 +504,19 @@ function AdminRepairHistoryContent({ admin }) {
                             <h4 style={{ margin: '0 0 6px', fontSize: '0.78rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                               Service Details &amp; Actions Taken
                             </h4>
-                            <p style={{ margin: 0, fontSize: '0.86rem', color: '#444', lineHeight: 1.6 }}>{row.technicianNotes || 'No detailed actions recorded yet.'}</p>
+                            <p style={{ margin: '0 0 12px 0', fontSize: '0.86rem', color: '#444', lineHeight: 1.6 }}>{row.technicianNotes || 'No detailed actions recorded yet.'}</p>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/admin/repair-history/${row.id}`);
+                              }}
+                              style={{
+                                padding: '6px 14px', background: '#111', color: '#fff', fontSize: '0.75rem', fontWeight: 600,
+                                border: 'none', borderRadius: '6px', cursor: 'pointer'
+                              }}
+                            >
+                              View Full Details Page
+                            </button>
                           </div>
                         </td>
                       </tr>
