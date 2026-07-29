@@ -145,7 +145,7 @@ export default function AdminCTA({ stats }) {
                 type="text"
                 value={serial}
                 onChange={e => { setSerial(e.target.value); setError(''); }}
-                placeholder="Enter 9 to 20 character serial number"
+                placeholder="Enter Serial Number"
                 maxLength={20}
                 style={{
                   border: 'none', outline: 'none', fontSize: '0.92rem',
@@ -153,7 +153,6 @@ export default function AdminCTA({ stats }) {
                   background: 'transparent', fontWeight: 500, width: '100%',
                 }}
               />
-              <span style={{ fontSize: '0.72rem', color: '#666666' }}>e.g. SN1234567890</span>
             </div>
           </div>
 

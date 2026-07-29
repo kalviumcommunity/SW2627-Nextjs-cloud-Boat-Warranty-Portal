@@ -324,7 +324,9 @@ function RepairContent() {
                         </div>
                       </td>
                       <td style={{ padding: '20px 12px', fontSize: '0.9rem', fontWeight: 600, color: '#222' }}>
-                        {row.issue}
+                        <Link href={`/repair/${row.id}`} onClick={(e) => e.stopPropagation()} style={{ color: '#e8001d', textDecoration: 'underline', textUnderlineOffset: '4px' }}>
+                          {row.issue}
+                        </Link>
                       </td>
                       <td style={{ padding: '20px 12px', fontSize: '0.88rem', color: '#444', lineHeight: 1.4 }}>
                         Official Service Center
@@ -375,9 +377,21 @@ function RepairContent() {
                             <h4 style={{ margin: '0 0 6px 0', fontSize: '0.82rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                               Service Details & Actions Taken
                             </h4>
-                            <p style={{ margin: 0, fontSize: '0.86rem', color: '#444', lineHeight: 1.5 }}>
+                            <p style={{ margin: '0 0 12px 0', fontSize: '0.86rem', color: '#444', lineHeight: 1.5 }}>
                               {row.technicianNotes || 'No detailed actions recorded yet.'}
                             </p>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/repair/${row.id}`);
+                              }}
+                              style={{
+                                padding: '6px 14px', background: '#111', color: '#fff', fontSize: '0.75rem', fontWeight: 600,
+                                border: 'none', borderRadius: '6px', cursor: 'pointer'
+                              }}
+                            >
+                              View Full Details Page
+                            </button>
                           </div>
                         </td>
                       </tr>

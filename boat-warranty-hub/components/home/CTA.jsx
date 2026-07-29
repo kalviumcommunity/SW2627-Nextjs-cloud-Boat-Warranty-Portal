@@ -3,11 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
-const sampleSerials = [
-  { code: 'SN1234567890', label: 'Sample SN #1 (Valid)' },
-  { code: 'SN-BOAT-9921', label: 'Airdopes 441' },
-  { code: 'SN-ROCK-550', label: 'Rockerz 550' },
-];
+
 
 export default function CTA({ badgeType }) {
   const [serial, setSerial] = useState('');
@@ -59,36 +55,7 @@ export default function CTA({ badgeType }) {
             </p>
           </div>
 
-          {/* Quick-fill sample pills */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Quick Try:
-            </span>
-            {sampleSerials.map((s) => (
-              <button
-                key={s.code}
-                type="button"
-                onClick={() => {
-                  setSerial(s.code);
-                  setError('');
-                }}
-                style={{
-                  background: serial === s.code ? '#E31E24' : 'rgba(227, 30, 36, 0.08)',
-                  color: serial === s.code ? '#ffffff' : '#E31E24',
-                  border: '1px solid rgba(227, 30, 36, 0.2)',
-                  borderRadius: '20px',
-                  padding: '4px 12px',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'monospace',
-                }}
-              >
-                {s.code}
-              </button>
-            ))}
-          </div>
+
         </div>
 
         {/* Input Row */}
@@ -172,7 +139,7 @@ export default function CTA({ badgeType }) {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleVerify();
                 }}
-                placeholder="Enter Serial Number e.g. SN1234567890"
+                placeholder="Enter Serial Number"
                 style={{
                   border: 'none',
                   outline: 'none',
