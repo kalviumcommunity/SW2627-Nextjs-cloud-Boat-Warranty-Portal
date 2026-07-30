@@ -252,7 +252,7 @@ export default function FAQPage() {
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '6px' }}>Still have questions?</h3>
             <p style={{ color: '#888', fontSize: '0.85rem', lineHeight: 1.5 }}>
-              If your question isn't answered here, reach out to our dedicated boAt support representatives.
+              If your question isn&apos;t answered here, reach out to our dedicated boAt support representatives.
             </p>
           </div>
           <Link 

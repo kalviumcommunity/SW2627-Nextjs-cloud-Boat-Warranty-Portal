@@ -200,7 +200,7 @@ function WarrantyResultContent() {
         <UserNavbar />
         <div style={{ maxWidth: '600px', margin: '100px auto', background: '#fff', padding: '40px', borderRadius: '14px', textAlign: 'center', border: '1px solid #e8e8e8' }}>
           <h1 style={{ fontSize: '1.8rem', color: '#111', marginBottom: '16px' }}>Warranty Not Found</h1>
-          <p style={{ color: '#666', marginBottom: '24px' }}>We couldn't find a warranty record for the serial number: <strong>{serial}</strong></p>
+          <p style={{ color: '#666', marginBottom: '24px' }}>We couldn&apos;t find a warranty record for the serial number: <strong>{serial}</strong></p>
           <button
             onClick={() => router.push('/home')}
             style={{
@@ -817,7 +817,7 @@ function WarrantyResultContent() {
 
                 <div style={{ marginBottom: '20px' }}>
                   <label htmlFor="issue-textarea" style={{ display: 'block', fontSize: '0.95rem', fontWeight: 700, color: '#111827', marginBottom: '8px' }}>
-                    What's the issue?
+                    What&apos;s the issue?
                   </label>
                   <textarea
                     id="issue-textarea"
