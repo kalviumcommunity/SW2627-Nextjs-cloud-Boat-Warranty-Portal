@@ -20,6 +20,12 @@ export default function AdminNavbar({ admin }) {
 
   const [notifications, setNotifications] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
+  const [seenCount, setSeenCount] = useState(0);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('adminSeenCount');
+    if (stored) setSeenCount(parseInt(stored, 10));
+  }, []);
 
   useEffect(() => {
     async function fetchNotifs() {
@@ -28,7 +34,15 @@ export default function AdminNavbar({ admin }) {
         const data = await res.json();
         if (res.ok && data.success) {
           setNotifications(data.data || []);
-          setPendingCount(data.pendingCount || 0);
+          const newPending = data.pendingCount || 0;
+          setPendingCount(newPending);
+          setSeenCount((prev) => {
+            const minSeen = Math.min(prev, newPending);
+            if (minSeen !== prev) {
+              localStorage.setItem('adminSeenCount', minSeen.toString());
+            }
+            return minSeen;
+          });
         }
       } catch (err) {
         console.error('Failed to fetch admin notifications:', err);
@@ -39,6 +53,23 @@ export default function AdminNavbar({ admin }) {
     const interval = setInterval(fetchNotifs, 10000); // refresh every 10s
     return () => clearInterval(interval);
   }, []);
+
+  const handleNotifClick = () => {
+    if (showNotif) {
+      setSeenCount(pendingCount);
+      localStorage.setItem('adminSeenCount', pendingCount.toString());
+    }
+    setShowNotif(!showNotif);
+  };
+
+  const closeNotifDropdown = () => {
+    setSeenCount(pendingCount);
+    localStorage.setItem('adminSeenCount', pendingCount.toString());
+    setShowNotif(false);
+  };
+
+  const unreadCount = Math.max(0, pendingCount - seenCount);
+  const unreadNotifications = notifications.slice(0, unreadCount);
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -176,14 +207,14 @@ export default function AdminNavbar({ admin }) {
         {/* Notification Bell Dropdown */}
         <div style={{ position: 'relative' }}>
           <div 
-            onClick={() => setShowNotif(!showNotif)} 
+            onClick={handleNotifClick} 
             style={{ position: 'relative', cursor: 'pointer', padding: '4px' }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--white)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
-            {pendingCount > 0 && (
+            {unreadCount > 0 && (
               <span style={{
                 position: 'absolute', top: '-2px', right: '-4px',
                 background: 'var(--red)', color: '#fff', fontSize: '0.62rem',
@@ -192,7 +223,7 @@ export default function AdminNavbar({ admin }) {
                 clipPath: 'polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px)',
                 boxShadow: '0 0 8px rgba(232,0,29,0.8)',
               }}>
-                {pendingCount}
+                {unreadCount}
               </span>
             )}
           </div>
@@ -237,7 +268,7 @@ export default function AdminNavbar({ admin }) {
                   </span>
                 </div>
                 <button
-                  onClick={() => setShowNotif(false)}
+                  onClick={closeNotifDropdown}
                   style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '1.1rem' }}
                 >
                   ×
@@ -245,18 +276,18 @@ export default function AdminNavbar({ admin }) {
               </div>
 
               <div style={{ maxHeight: '360px', overflowY: 'auto', padding: '8px 0' }}>
-                {notifications.length === 0 ? (
+                {unreadNotifications.length === 0 ? (
                   <div style={{ padding: '24px 18px', textAlign: 'center', color: '#888', fontSize: '0.82rem' }}>
-                    No active repair notifications.
+                    No new repair notifications.
                   </div>
                 ) : (
-                  notifications.map((item) => {
+                  unreadNotifications.map((item) => {
                     const ctxColor = CONTEXT_COLORS[item.context] || '#3b82f6';
                     return (
                       <div
                         key={item.id}
                         onClick={() => {
-                          setShowNotif(false);
+                          closeNotifDropdown();
                           if (item.serialNumber) {
                             router.push(`/admin/repair-history?serial=${encodeURIComponent(item.serialNumber)}`);
                           } else {
@@ -314,7 +345,7 @@ export default function AdminNavbar({ admin }) {
               }}>
                 <Link
                   href="/admin"
-                  onClick={() => setShowNotif(false)}
+                  onClick={closeNotifDropdown}
                   style={{ color: '#e8001d', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}
                 >
                   View All Notifications on Dashboard →
