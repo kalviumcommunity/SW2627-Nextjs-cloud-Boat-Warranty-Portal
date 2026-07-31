@@ -19,6 +19,10 @@ export default function AdminCTA({ stats }) {
   const [loading, setLoading] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loadingNotifs, setLoadingNotifs] = useState(true);
+  
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+  const totalPages = Math.ceil(notifications.length / ITEMS_PER_PAGE);
 
   useEffect(() => {
     async function fetchNotifs() {
@@ -287,7 +291,7 @@ export default function AdminCTA({ stats }) {
           <p style={{ color: '#888', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>No repair request notifications recorded yet.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {notifications.slice(0, 5).map((notif) => {
+            {notifications.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((notif) => {
               const ctxColor = CONTEXT_COLORS[notif.context] || '#3b82f6';
               return (
                 <div
@@ -363,6 +367,56 @@ export default function AdminCTA({ stats }) {
                 </div>
               );
             })}
+
+            {totalPages > 1 && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '16px',
+                marginTop: '8px',
+                paddingTop: '16px',
+                borderTop: '1px solid #222'
+              }}>
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  style={{
+                    background: page === 1 ? '#222' : 'var(--red)',
+                    color: page === 1 ? '#666' : '#fff',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    cursor: page === 1 ? 'not-allowed' : 'pointer',
+                    transition: 'background 0.2s'
+                  }}
+                >
+                  ← Prev
+                </button>
+                <span style={{ color: '#888', fontSize: '0.85rem', fontWeight: 600 }}>
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  style={{
+                    background: page === totalPages ? '#222' : 'var(--red)',
+                    color: page === totalPages ? '#666' : '#fff',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                    transition: 'background 0.2s'
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
