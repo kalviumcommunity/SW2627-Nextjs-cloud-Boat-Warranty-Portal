@@ -58,6 +58,8 @@ model Repair {
   repairStatus          RepairStatus   @default(PENDING)
   estimatedCompletion   DateTime?
   technicianNotes       String?
+  serviceCenter         String?
+  technician            String?
   repairDate            DateTime       @default(now())
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt

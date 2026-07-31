@@ -11,7 +11,7 @@ import Footer from '@/components/layout/Footer';
 import GlobalLoading from '../loading';
 
 export default function UserHome() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {

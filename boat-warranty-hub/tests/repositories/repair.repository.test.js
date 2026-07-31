@@ -26,7 +26,8 @@ describe('Repair Repository', () => {
         const result = await repairRepository.findRepairById(1);
 
         expect(prisma.repair.findUnique).toHaveBeenCalledWith({
-            where: { id: 1 }
+            where: { id: 1 },
+            include: { product: true }
         });
         expect(result).toEqual(mockRepair);
     });

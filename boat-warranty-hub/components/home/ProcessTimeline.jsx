@@ -99,7 +99,7 @@ export default function ProcessTimeline() {
             position: 'relative',
           }}
         >
-          {steps.map((step, index) => (
+          {steps.map((step, _index) => (
             <div
               key={step.number}
               style={{

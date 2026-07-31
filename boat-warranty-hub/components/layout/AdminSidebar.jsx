@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { signOut } from 'next-auth/react';
 import { useRouter as useNextRouter } from 'next/navigation';
 
@@ -24,6 +23,7 @@ export default function AdminNavbar({ admin }) {
 
   useEffect(() => {
     const stored = localStorage.getItem('adminSeenCount');
+    // eslint-disable-next-line
     if (stored) setSeenCount(parseInt(stored, 10));
   }, []);
 
@@ -201,9 +201,39 @@ export default function AdminNavbar({ admin }) {
         </li>
       </ul>
 
-      <div style={{ flex: 1 }} />
+      {/* Search Bar */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        background: '#1c1c1c',
+        border: '1px solid #333',
+        borderRadius: '8px',
+        padding: '0 14px',
+        height: '38px',
+        maxWidth: '340px',
+      }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="7" stroke="#999" strokeWidth="2" />
+          <path d="M20 20l-3-3" stroke="#999" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+        <input
+          type="text"
+          placeholder='Search "boAt Rockerz 550"'
+          style={{
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            color: 'var(--gray-300)',
+            fontSize: '0.82rem',
+            fontFamily: 'inherit',
+            width: '100%',
+          }}
+        />
+      </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexShrink: 0, marginLeft: 'auto' }}>
         {/* Notification Bell Dropdown */}
         <div style={{ position: 'relative' }}>
           <div 

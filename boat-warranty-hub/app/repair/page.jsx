@@ -40,7 +40,7 @@ function RepairContent() {
   const [error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState('All');
 
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   useEffect(() => {
     if (status === 'unauthenticated') {

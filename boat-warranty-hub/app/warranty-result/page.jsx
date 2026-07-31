@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import UserNavbar from '@/components/layout/UserNavbar';
-import Footer from '@/components/layout/Footer';
 import GlobalLoading from '../loading';
 import { showToast } from '@/components/common/BoatToast';
 

@@ -2,7 +2,6 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import Image from 'next/image';
 import Link from 'next/link';
 import AdminNavbar from '@/components/layout/AdminSidebar';
 import ProductDetailCard from '@/components/shared/ProductDetailCard';
@@ -97,7 +96,7 @@ function AdminWarrantyLookupContent({ admin }) {
         setUploadStatus('error');
         alert(data.message || 'Upload failed');
       }
-    } catch (err) {
+    } catch (_err) {
       setUploadStatus('error');
       alert('Error uploading file');
     }
