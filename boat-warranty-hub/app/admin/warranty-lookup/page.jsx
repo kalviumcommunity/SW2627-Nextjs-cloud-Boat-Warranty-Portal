@@ -9,6 +9,21 @@ import ProductDetailCard from '@/components/shared/ProductDetailCard';
 
 // No mock data needed here anymore
 
+const CalIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+);
+const ClockIcon = () => (
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
 // ── Page content (inside Suspense for useSearchParams) ────────────────────────
 function AdminWarrantyLookupContent({ admin }) {
   const searchParams = useSearchParams();
@@ -16,30 +31,30 @@ function AdminWarrantyLookupContent({ admin }) {
   const serial = searchParams.get('serial') || '';
 
   const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(serial));
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!serial) {
-      setLoading(false);
-      return;
-    }
+    if (!serial) return;
+    let isMounted = true;
     const fetchProduct = async () => {
       try {
         const response = await fetch(`/api/warranty/${serial}`);
         const result = await response.json();
+        if (!isMounted) return;
         if (response.ok) {
           setProduct(result);
         } else {
           setError(result.message || 'Product not found');
         }
-      } catch (err) {
-        setError('Error connecting to server.');
+      } catch {
+        if (isMounted) setError('Error connecting to server.');
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchProduct();
+    return () => { isMounted = false; };
   }, [serial]);
 
   const isActive = product?.warrantyStatus === 'ACTIVE';
@@ -129,20 +144,7 @@ function AdminWarrantyLookupContent({ admin }) {
     ...(product.pdfUploadedAt ? [{ label: 'PDF Uploaded At', value: new Date(product.pdfUploadedAt).toLocaleString() }] : []),
   ];
 
-  const CalIcon = () => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-  const ClockIcon = () => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8001d" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
+
 
   const timeline = [
     { label: 'Purchase Date', value: purchaseDate, highlight: false, icon: <CalIcon /> },

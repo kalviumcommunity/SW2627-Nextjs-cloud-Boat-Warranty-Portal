@@ -102,7 +102,7 @@ export default function ContactPage() {
             marginBottom: '16px',
             letterSpacing: '-0.5px',
           }}>
-            We're here to help you<span style={{ color: 'var(--red)' }}>.</span>
+            We&apos;re here to help you<span style={{ color: 'var(--red)' }}>.</span>
           </h1>
           <p style={{ color: '#888', fontSize: '0.95rem', maxWidth: '500px', margin: '0 auto' }}>
             Got a query regarding your warranty status, claims, or repairs? Fill in the details below.

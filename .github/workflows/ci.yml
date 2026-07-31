@@ -1,0 +1,67 @@
+name: Boat Warranty Hub Integration Pipeline
+
+run-name: ${{ github.actor }} triggered CI pipeline on ${{ github.ref_name }}
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+# Cancel outdated runs on the same branch / pull request automatically
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-build:
+    name: Build & Test (Next.js 16 + Prisma)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: boat-warranty-hub
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: "postgresql://ci_user:ci_password@localhost:5432/ci_db"
+      NEXTAUTH_SECRET: "ci-secret-key-32-characters-minimum-length-for-nextauth"
+      NEXTAUTH_URL: "http://localhost:3000"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: 'boat-warranty-hub/package-lock.json'
+
+      - name: Install Dependencies
+        # npm install --prefer-dedupe resolves cross-platform native optional binaries cleanly
+        run: npm install --prefer-dedupe
+
+      - name: Validate Prisma Schema
+        run: npx prisma validate
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Tests with Coverage
+        run: npm run test:coverage
+
+      - name: Upload Test Coverage Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: boat-warranty-hub/coverage/
+          retention-days: 7
+
+      - name: Build Production Bundle
+        run: npm run build
