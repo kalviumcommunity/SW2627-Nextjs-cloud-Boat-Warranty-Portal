@@ -25,6 +25,8 @@ export const createRepairSchema = z.object({
     repairStatus: z.enum(["PENDING","IN_PROGRESS","COMPLETED","CANCELLED"]),
     estimatedCompletion: z.string().regex(/^\d{4}-\d{2}-\d{2}$/,"Invalid Date format").transform((val) => new Date(val).toISOString()).optional(),
     technicianNotes: z.string().trim().optional(),
+    serviceCenter: z.string().trim().optional(),
+    technician: z.string().trim().optional(),
     productId: z.number().int("Product ID must be an integer").positive("Product ID must be greater tham 0")
 })
 

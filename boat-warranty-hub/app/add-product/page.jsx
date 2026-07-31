@@ -49,7 +49,7 @@ function AddProductContent({ admin }) {
       } else {
         setStatus({ loading: false, error: result.message || 'Failed to add product.', success: null });
       }
-    } catch (err) {
+    } catch (_err) {
       setStatus({ loading: false, error: 'Error connecting to server.', success: null });
     }
   };

@@ -8,7 +8,8 @@ export async function createRepair(data){
 
 export async function findRepairById(id){
     return prisma.repair.findUnique({
-        where: { id }
+        where: { id },
+        include: { product: true }
     });
 }
 
