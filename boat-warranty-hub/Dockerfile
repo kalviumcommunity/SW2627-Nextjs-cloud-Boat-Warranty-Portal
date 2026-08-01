@@ -21,7 +21,7 @@ RUN apt-get update -y && \
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 # ── Stage 2: Build the application ──
 FROM base AS builder
@@ -55,7 +55,7 @@ COPY --from=builder /app/public ./public
 # Copy Prisma schema and generated client (needed at runtime for queries)
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/lib/generated ./lib/generated
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+# COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
