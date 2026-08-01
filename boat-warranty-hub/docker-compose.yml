@@ -1,75 +1,44 @@
-# ============================================
-# docker-compose.yml — Development Configuration
-# boAt Warranty Hub
-# ============================================
-# This is the primary compose file for local development.
-#
-# Quick Start:
-#   1. Copy .env.example to .env and fill in values
-#   2. Run: docker compose up --build
-#   3. Visit: http://localhost:3000
-#
-# Architecture:
-#   web      → Next.js dev server (hot-reload enabled)
-#   database → PostgreSQL 17 (local, not Neon)
-#
-# Note: docker-compose.yml environment values OVERRIDE .env file.
-#       DATABASE_URL below points to the local container, NOT Neon.
-# ============================================
+version: "3.9"
 
 services:
-  # ── Next.js Application ──
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    env_file:
-      - .env
-    ports:
-      - "3000:3000"
-    depends_on:
-      database:
-        condition: service_healthy
-    restart: unless-stopped
-    volumes:
-      # Bind mount for hot-reloading (source changes reflect instantly)
-      - .:/app
-      # Anonymous volume — prevents host node_modules from overwriting container's
-      - /app/node_modules
-      # Mount credentials as read-only for Google Cloud Storage access
-      - ./credentials:/app/credentials:ro
-    environment:
-      # Override the Neon DATABASE_URL from .env with the local Docker Postgres
-      NODE_ENV: development
-      DATABASE_URL: postgresql://postgres:postgres@database:5432/boat_warranty_hub?schema=public
-      TURBOPACK: "0"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
-  # ── PostgreSQL Database ──
-  database:
+  db:
+
     image: postgres:17-alpine
-    ports:
-      # Expose to host for debugging with pgAdmin, DBeaver, psql, etc.
-      - "5432:5432"
+
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-boat_warranty_hub}
+
+      POSTGRES_USER: postgres
+
+      POSTGRES_PASSWORD: postgres
+
+      POSTGRES_DB: boat_warranty_hub
+
+    ports:
+      - "5432:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-boat_warranty_hub}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
-# ── Named Volumes ──
+
+  app:
+
+    build: .
+
+    depends_on:
+      - db
+
+    environment:
+
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/boat_warranty_hub?schema=public
+
+      NEXTAUTH_SECRET: your-secret
+
+      NEXTAUTH_URL: http://localhost:3000
+
+    ports:
+      - "3000:3000"
+
 volumes:
+
   postgres_data:
-    driver: local
