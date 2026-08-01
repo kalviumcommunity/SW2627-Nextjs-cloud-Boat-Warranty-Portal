@@ -42,7 +42,7 @@ jobs:
       # Install Dependencies
       # ─────────────────────────────────────────────
       - name: Install Dependencies
-        run: npm ci
+        run: npm install --prefer-dedupe
 
       # ─────────────────────────────────────────────
       # Generate Prisma Client
