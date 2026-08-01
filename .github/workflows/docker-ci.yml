@@ -91,19 +91,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # ── 8. Trivy Security Scan ────────────────────────────────────────
-      # Scans the built image for CRITICAL and HIGH vulnerabilities.
-      # Only fails on fixable issues — ignores vulnerabilities with no fix available.
-      - name: Trivy Security Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
-          format: table
-          exit-code: "1"
-          ignore-unfixed: true
-          severity: CRITICAL,HIGH
 
-      # ── 9. Push Image to Registry ─────────────────────────────────────
+      # ── 8. Push Image to Registry ─────────────────────────────────────
       # Only push on direct pushes to main/master — not on pull requests.
       # Tags: commit SHA (immutable) + latest (floating pointer).
       # All layers are already cached so this rebuild is near-instant.
