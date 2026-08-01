@@ -1,82 +1,69 @@
-# ============================================
-# Dockerfile — Production Multi-Stage Build
-# boAt Warranty Hub (Next.js 16 + Prisma + Postgres)
-# ============================================
-# Three-stage build that produces a minimal production image:
-#   Stage 1 (deps):    Install production-only dependencies
-#   Stage 2 (builder): Build the Next.js app with standalone output
-#   Stage 3 (runner):  Minimal runtime image (~150MB vs ~1.2GB)
-#
-# Usage:
-#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
-# ============================================
+# =====================================================
+# Dockerfile — boAt Warranty Hub (Production)
+# Multi-stage build: builder → runner
+# Next.js standalone output + Prisma Client
+# =====================================================
 
-# ── Base image ──
-FROM node:22-slim AS base
-RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends openssl curl && \
-    rm -rf /var/lib/apt/lists/*
+# ── Stage 1: Builder ──────────────────────────────
+FROM node:22-slim AS builder
 
-# ── Stage 1: Install dependencies ──
-FROM base AS deps
 WORKDIR /app
+
+# Install openssl for Prisma binary (required at generate time)
+RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency manifests first (cache layer)
 COPY package.json package-lock.json ./
+
+# Install ALL deps (including devDeps needed for build & prisma generate)
 RUN npm install
 
-# ── Stage 2: Build the application ──
-FROM base AS builder
-WORKDIR /app
-
-# Copy node_modules from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source code
 COPY . .
 
-# Generate the Prisma Client
+# Generate Prisma Client into lib/generated/prisma
 RUN npx prisma generate
 
-# Build Next.js in standalone mode (configured in next.config.ts)
+# Build Next.js standalone bundle
 RUN npm run build
 
-# ── Stage 3: Production runtime ──
-FROM base AS runner
+# ── Stage 2: Runner ───────────────────────────────
+FROM node:22-slim AS runner
+
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
-# Create non-root user
-RUN groupadd --system appgroup && \
-    useradd --system --gid appgroup --create-home appuser
+# Install openssl (Prisma needs it at runtime) + curl (healthcheck)
+# Create a non-root user for security
+RUN apt-get update && apt-get install -y --no-install-recommends openssl curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system appgroup \
+    && useradd --system --gid appgroup appuser
 
-# Copy the standalone server output from the builder stage
+# Copy standalone Next.js server (self-contained, no node_modules needed)
 COPY --from=builder /app/.next/standalone ./
+
+# Copy static assets & public folder
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Copy Prisma schema and generated client (needed at runtime for queries)
+# Copy Prisma schema + generated client (needed for prisma migrate deploy)
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/lib/generated ./lib/generated
-# COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
-# Copy the prisma config for migrations
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/package.json ./package.json
-
-# Copy production entrypoint script
+# Copy production entrypoint
 COPY docker-entrypoint.prod.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Set file ownership
-RUN chown -R appuser:appgroup /app
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+    && chown -R appuser:appgroup /app
 
 USER appuser
 
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
-# Health check — Docker monitors if the app is responsive
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
