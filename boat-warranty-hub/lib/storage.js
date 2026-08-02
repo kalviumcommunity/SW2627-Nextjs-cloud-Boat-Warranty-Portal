@@ -1,24 +1,36 @@
 import { Storage } from "@google-cloud/storage";
 import path from "path";
 
-const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS
-  ? path.join(process.cwd(), process.env.GOOGLE_APPLICATION_CREDENTIALS)
-  : undefined;
+const bucketName = process.env.GOOGLE_CLOUD_BUCKET_NAME;
 
-const storageOptions = {};
-if (process.env.GOOGLE_CLOUD_PROJECT_ID) {
-  storageOptions.projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
+function getStorage() {
+  const storageOptions = {};
+
+  if (process.env.GOOGLE_CLOUD_PROJECT_ID) {
+    storageOptions.projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
+  }
+
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    storageOptions.keyFilename = path.isAbsolute(credentialsPath)
+      ? credentialsPath
+      : path.resolve(process.cwd(), credentialsPath);
+  }
+
+  return new Storage(storageOptions);
 }
-if (credentialsPath) {
-  storageOptions.keyFilename = credentialsPath;
+
+function getBucket() {
+  if (!bucketName) {
+    throw new Error("GOOGLE_CLOUD_BUCKET_NAME must be set in the environment.");
+  }
+
+  const storage = getStorage();
+  return storage.bucket(bucketName);
 }
-
-const storage = new Storage(storageOptions);
-
-const bucketName = process.env.GOOGLE_CLOUD_BUCKET_NAME || 'boat-warranty-bucket';
-const bucket = storage.bucket(bucketName);
 
 export async function generateSignedUrl(fileName) {
+  const bucket = getBucket();
   const file = bucket.file(fileName);
   const [url] = await file.getSignedUrl({
     version: "v4",
@@ -29,6 +41,7 @@ export async function generateSignedUrl(fileName) {
 }
 
 export async function uploadWarrantyPdf(file, fileName) {
+  const bucket = getBucket();
   const uniqueFileName = `${Date.now()}-${fileName}`;
   const blob = bucket.file(uniqueFileName);
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -36,7 +49,7 @@ export async function uploadWarrantyPdf(file, fileName) {
   await blob.save(buffer, {
     metadata: {
       contentType: file.type,
-    }
+    },
   });
 
   return uniqueFileName;
