@@ -12,7 +12,7 @@ export async function registration(data){
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-    const user = await createUser({ ...userData, password: hashedPassword, role: 'USER', isVerified: true });
+    const user = await createUser({ ...userData, password: hashedPassword, role: 'USER'});
 
     const { password, ...safeUser } = user;
 
