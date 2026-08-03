@@ -54,7 +54,6 @@ export async function countActiveProducts() {
 export async function countExpiredProducts() {
     return prisma.product.count({
         where: {
-            isActive: true,
             warrantyExpiry: {
                 lt: new Date()
             }

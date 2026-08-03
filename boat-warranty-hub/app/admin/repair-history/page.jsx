@@ -452,10 +452,10 @@ function AdminRepairHistoryContent({ admin }) {
                       </td>
                       {/* Center */}
                       <td style={{ padding: '18px 12px', fontSize: '0.82rem', color: '#444', lineHeight: 1.4, cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>
-                        Official Service Center
+                        {row.serviceCenter || 'Official Service Center'}
                       </td>
                       <td style={{ padding: '18px 12px', fontSize: '0.82rem', color: '#444', cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>
-                        Assigned Tech
+                        {row.technician || 'Assigned Tech'}
                       </td>
                       {/* Status badge */}
                       <td style={{ padding: '18px 12px', cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>

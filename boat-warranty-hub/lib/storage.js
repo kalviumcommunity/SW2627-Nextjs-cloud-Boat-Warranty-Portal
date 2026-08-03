@@ -54,3 +54,14 @@ export async function uploadWarrantyPdf(file, fileName) {
 
   return uniqueFileName;
 }
+
+export async function deleteWarrantyPdf(fileName){
+  const bucket = getBucket();
+  const file = bucket.file(fileName);
+
+  const [exists] = await file.exists();
+
+  if(exists){
+    await file.delete();
+  }
+}

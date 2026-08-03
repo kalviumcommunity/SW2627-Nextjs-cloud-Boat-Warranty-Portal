@@ -35,7 +35,7 @@ export async function updateExistingProduct(id,data){
     return await updateProduct(id,data);
 }
 
-export async function deleteExisitingProduct(id){
+export async function deleteExistingProduct(id){
     const product = await findProductById(id);
 
     if(!product){

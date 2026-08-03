@@ -5,7 +5,6 @@ import logger from "./lib/logger";
 
 const PUBLIC_ROUTES = [
     "/api/health",
-    "/api/dashboard/stats"
 ];
 
 
@@ -38,6 +37,7 @@ export async function middleware(request){
 
     const ADMIN_ONLY_ROUTES = [
         { path: "/api/dashboard", methods: ["GET", "POST", "PUT", "DELETE"] },
+        { path: "/api/admin", methods: ["GET", "POST", "PUT", "DELETE"] },
         { path: "/api/products", methods: ["POST", "PUT", "DELETE"] },
         { path: "/api/repairs", methods: ["GET", "POST", "PUT", "DELETE"] }
     ];

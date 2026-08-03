@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteExisitingProduct, getProductById, updateExistingProduct } from "../../../../services/products.service";
+import { deleteExistingProduct, getProductById, updateExistingProduct } from "../../../../services/products.service";
 import logger from "@/lib/logger";
 
 
@@ -16,7 +16,7 @@ export async function GET(request,context){
         logger.error({ error }, "Failed to fetch product");
         return NextResponse.json({
             success:false,
-            message:error.message
+            message:"Failed to fetch product"
         },{status:500})
     }
 }
@@ -36,7 +36,7 @@ export async function PUT(request,context){
         logger.error({ error }, "Failed to update product");
         return NextResponse.json({
             success:false,
-            message:error.message
+            message:"Failed to update product"
         },{status:500});
     }
 }
@@ -45,7 +45,7 @@ export async function DELETE(request,context){
     try {
         const {id} = await context.params;
         const productId = Number(id);
-        await deleteExisitingProduct(productId);
+        await deleteExistingProduct(productId);
         return NextResponse.json({
             success:true,
             message:"Product deleted successfully"
@@ -54,7 +54,7 @@ export async function DELETE(request,context){
         logger.error({ error }, "Failed to delete product");
         return NextResponse.json({
             success:false,
-            message:error.message
+            message:"Failed to delete product"
         },{status:500})
     }
 }

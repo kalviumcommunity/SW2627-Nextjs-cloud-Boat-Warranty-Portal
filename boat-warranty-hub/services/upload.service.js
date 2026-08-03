@@ -3,9 +3,9 @@ import {
     updateWarrantyPdf,
 } from "@/repositories/product.repository";
 
-import { uploadWarrantyPdf, generateSignedUrl } from "@/lib/storage";
+import { uploadWarrantyPdf, generateSignedUrl, deleteWarrantyPdf, } from "@/lib/storage";
 
-export async function uploadProductWarrantyPdf(productId, file) {
+export async function uploadProductWarrantyPdf(productId, file, forceReplace = false) {
 
     const product = await findProductById(productId);
 
@@ -14,7 +14,10 @@ export async function uploadProductWarrantyPdf(productId, file) {
     }
 
     if (product.warrantyPdfUrl) {
-        throw new Error("Warranty certificate already exists.");
+        if(!forceReplace){
+            throw new Error("Warranty certificate already exists.");
+        }
+        await deleteWarrantyPdf(product.warrantyPdfUrl);
     }
 
     const fileName = `${product.serialNumber}.pdf`;

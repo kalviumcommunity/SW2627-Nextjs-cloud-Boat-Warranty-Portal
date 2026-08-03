@@ -84,6 +84,7 @@ function AdminWarrantyLookupContent({ admin }) {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('forceReplace', 'true');
       const res = await fetch(`/api/products/${product.id}/warranty-pdf`, {
         method: 'POST',
         body: formData,
@@ -91,12 +92,12 @@ function AdminWarrantyLookupContent({ admin }) {
       const data = await res.json();
       if (res.ok && data.success) {
         setUploadStatus('done');
-        setProduct(prev => ({ ...prev, warrantyPdfUrl: 'uploaded', pdfUploadedAt: new Date().toISOString() }));
+        setProduct(prev => prev ? { ...prev, ...(data.data || {}), warrantyPdfUrl: data.data?.warrantyPdfUrl || prev.warrantyPdfUrl, pdfUploadedAt: data.data?.pdfUploadedAt || prev.pdfUploadedAt || new Date().toISOString() } : prev);
       } else {
         setUploadStatus('error');
         alert(data.message || 'Upload failed');
       }
-    } catch (_err) {
+    } catch {
       setUploadStatus('error');
       alert('Error uploading file');
     }
@@ -279,7 +280,7 @@ function AdminWarrantyLookupContent({ admin }) {
                   onMouseEnter={e => { if (uploadStatus !== 'uploading') e.currentTarget.style.background = uploadStatus === 'done' ? '#15803d' : '#6d28d9'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = uploadStatus === 'done' ? '#16a34a' : '#7c3aed'; }}
                 >
-                  {uploadStatus === 'uploading' ? 'Uploading…' : uploadStatus === 'done' ? '✓ Uploaded' : 'Upload PDF ↑'}
+                  {uploadStatus === 'uploading' ? 'Uploading…' : uploadStatus === 'done' ? '✓ Uploaded' : product.warrantyPdfUrl ? 'Replace PDF ↑' : 'Upload PDF ↑'}
                   <input type="file" accept="application/pdf" style={{ display: 'none' }} onChange={handleUpload} disabled={uploadStatus === 'uploading'} />
                 </label>
               </div>

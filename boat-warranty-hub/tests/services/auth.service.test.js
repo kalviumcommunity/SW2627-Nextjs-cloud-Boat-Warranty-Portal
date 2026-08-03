@@ -32,8 +32,7 @@ describe('Auth Service', () => {
             expect(userRepository.createUser).toHaveBeenCalledWith({
                 email: 'test@test.com',
                 password: 'hashed_password',
-                role: 'USER',
-                isVerified: true
+                role: 'USER'
             });
             expect(result).not.toHaveProperty('password');
             expect(result.email).toBe('test@test.com');

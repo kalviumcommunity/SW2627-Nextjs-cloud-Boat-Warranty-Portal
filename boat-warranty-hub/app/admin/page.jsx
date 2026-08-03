@@ -17,12 +17,12 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
+    if (status === 'unauthenticated' || (status === 'authenticated' && admin?.role !== 'ADMIN')) {
       router.push('/admin/login');
       return;
     }
     
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && admin?.role === 'ADMIN') {
       fetch('/api/dashboard/stats')
         .then(res => res.json())
         .then(data => {
@@ -33,9 +33,9 @@ export default function AdminDashboardPage() {
         .catch(err => console.error("Failed to fetch stats:", err))
         .finally(() => setLoadingStats(false));
     }
-  }, [status, router]);
+  }, [status, admin?.role, router]);
 
-  if (loadingSession || loadingStats || !admin) return null;
+  if (loadingSession || loadingStats || !admin || admin?.role !== 'ADMIN') return null;
 
   return (
     <main style={{ minHeight: '100vh', background: '#f5f3f3', display: 'flex', flexDirection: 'column' }}>

@@ -104,7 +104,6 @@ describe('Product Repository', () => {
         const result = await productRepository.countExpiredProducts();
         expect(prisma.product.count).toHaveBeenCalledWith(expect.objectContaining({
             where: expect.objectContaining({
-                isActive: true,
                 warrantyExpiry: expect.any(Object)
             })
         }));
