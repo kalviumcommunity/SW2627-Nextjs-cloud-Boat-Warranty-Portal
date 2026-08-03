@@ -9,9 +9,9 @@ export const productSchema=z.object({
 });
 
 export const registerSchema=z.object({
-    name:z.string().min(3,"Name must be atleast less than 3 characters").max(50,"Name must not exceed more than 50 characters"),
+    name:z.string().min(3,"Name must be less than 3 characters").max(50,"Name must not exceed more than 50 characters"),
     email:z.string().email("Invalid email address entered"),
-    password:z.string().min(8,"Password musgt not be less than 8 characters"),
+    password:z.string().min(8,"Password must not be less than 8 characters"),
     phone:z.string().regex(/^[0-9]{10}$/,"Phone number must contain exactly 10 digits").optional(),
 })
 

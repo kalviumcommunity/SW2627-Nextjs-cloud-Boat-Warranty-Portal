@@ -1,5 +1,5 @@
 import { findProductById } from "../repositories/product.repository";
-import { createRepair, deleteRepair, findRepairById, findRepairByProductId, updateRepair } from "../repositories/repair.repository";
+import { createRepair, deleteRepair, findRepairById, findRepairByProductId, findRepairsBySerialNumber, updateRepair } from "../repositories/repair.repository";
 
 
 export async function addRepair(data){
@@ -22,10 +22,14 @@ export async function getRepairsByProductId(productId){
     return await findRepairByProductId(productId);
 }
 
+export async function getRepairsBySerialNumber(serialNumber){
+    return await findRepairsBySerialNumber(serialNumber);
+}
+
 export async function editRepair(id,data){
     return await updateRepair(id,data);
 }
 
 export async function removeRepair(id){
     return await deleteRepair(id)   
-}
+}

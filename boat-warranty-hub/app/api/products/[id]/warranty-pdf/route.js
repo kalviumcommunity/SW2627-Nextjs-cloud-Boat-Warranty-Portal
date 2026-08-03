@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { uploadProductWarrantyPdf } from "@/services/upload.service";
-import { getWarrantyPdf } from "../../../../../services/upload.service";
+import { uploadProductWarrantyPdf, getWarrantyPdf } from "@/services/upload.service";
 import logger from "@/lib/logger";
 
 export async function POST(request,context){
@@ -10,6 +9,8 @@ export async function POST(request,context){
         const productId = Number(id);
 
         const formData = await request.formData();
+
+        const forceReplace = formData.get("forceReplace") === "true";
 
         const file = formData.get("file");
 
@@ -38,7 +39,7 @@ export async function POST(request,context){
             },{status:400});
         }
 
-        const product = await uploadProductWarrantyPdf(productId,file);
+        const product = await uploadProductWarrantyPdf(productId,file,forceReplace);
 
         return NextResponse.json({
             success:true,

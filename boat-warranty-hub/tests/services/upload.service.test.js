@@ -32,6 +32,18 @@ describe('Upload Service', () => {
             expect(productRepository.updateWarrantyPdf).toHaveBeenCalledWith(1, 'https://mock-storage.com/warranty.pdf');
             expect(result.warrantyPdfUrl).toBe('mock-url');
         });
+
+        test('replaces an existing warranty pdf when forceReplace is true', async () => {
+            productRepository.findProductById.mockResolvedValue({ id: 1, serialNumber: 'SN123', warrantyPdfUrl: 'old-url.pdf' });
+            productRepository.updateWarrantyPdf.mockResolvedValue({ id: 1, warrantyPdfUrl: 'new-url.pdf' });
+
+            const result = await uploadService.uploadProductWarrantyPdf(1, Buffer.from('test'), true);
+
+            expect(storage.deleteWarrantyPdf).toHaveBeenCalledWith('old-url.pdf');
+            expect(storage.uploadWarrantyPdf).toHaveBeenCalledWith(Buffer.from('test'), 'SN123.pdf');
+            expect(productRepository.updateWarrantyPdf).toHaveBeenCalledWith(1, 'https://mock-storage.com/warranty.pdf');
+            expect(result.warrantyPdfUrl).toBe('new-url.pdf');
+        });
     });
 
     describe('getWarrantyPdf', () => {

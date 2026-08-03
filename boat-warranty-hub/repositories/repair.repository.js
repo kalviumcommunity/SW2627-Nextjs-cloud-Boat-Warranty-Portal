@@ -59,3 +59,16 @@ export async function getRecentRepairs(limit = 10) {
     });
 }
 
+export async function findRepairsBySerialNumber(serialNumber) {
+    return prisma.repair.findMany({
+        where: {
+            product: {
+                serialNumber: serialNumber
+            }
+        },
+        orderBy: { repairDate: "desc" },
+        include: { product: true }
+    });
+}
+
+

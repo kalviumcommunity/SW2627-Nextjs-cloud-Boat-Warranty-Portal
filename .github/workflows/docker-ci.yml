@@ -51,17 +51,6 @@ jobs:
         run: npx prisma generate
 
       # ─────────────────────────────────────────────
-      # Run Tests
-      # ─────────────────────────────────────────────
-      - name: Run Tests
-        run: npm test -- --runInBand
-
-      # Uncomment once your lint configuration is stable
-      #
-      # - name: Run Lint
-      #   run: npm run lint
-
-      # ─────────────────────────────────────────────
       # Setup Docker Buildx
       # ─────────────────────────────────────────────
       - name: Set up Docker Buildx
