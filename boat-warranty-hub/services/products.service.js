@@ -44,3 +44,5 @@ export async function deleteExistingProduct(id){
 
     return await deleteProduct(id);
 }
+
+export const deleteExisitingProduct = deleteExistingProduct;
