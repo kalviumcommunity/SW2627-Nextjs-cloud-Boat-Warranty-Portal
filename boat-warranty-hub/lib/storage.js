@@ -14,7 +14,7 @@ function getStorage() {
     const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
     storageOptions.keyFilename = path.isAbsolute(credentialsPath)
       ? credentialsPath
-      : path.resolve(process.cwd(), credentialsPath);
+      : path.resolve(/* turbopackIgnore: true */ process.cwd(), credentialsPath);
   }
 
   return new Storage(storageOptions);
