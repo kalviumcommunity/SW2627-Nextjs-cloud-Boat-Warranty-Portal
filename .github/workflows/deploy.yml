@@ -1,96 +1,15 @@
-name: Deploy to Google Cloud Run
-
-run-name: "${{ github.actor }} → Deploy to Cloud Run"
+name: Deploy to Vercel
 
 on:
   push:
     branches:
       - main
 
-concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: read
-
-env:
-  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-  REGION: ${{ vars.GCP_REGION }}
-  REPOSITORY: ${{ vars.ARTIFACT_REGISTRY }}
-  SERVICE: ${{ vars.CLOUD_RUN_SERVICE }}
-  IMAGE: boat-warranty-hub
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./boat-warranty-hub
-
     steps:
-      # -------------------------------------------------
-      # Checkout Repository
-      # -------------------------------------------------
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # -------------------------------------------------
-      # Authenticate to Google Cloud
-      # -------------------------------------------------
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-
-      # -------------------------------------------------
-      # Install Google Cloud SDK
-      # -------------------------------------------------
-      - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      # -------------------------------------------------
-      # Configure Docker for Artifact Registry
-      # -------------------------------------------------
-      - name: Configure Docker Authentication
+      - name: Trigger Vercel Deployment
         run: |
-          gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
-
-      # -------------------------------------------------
-      # Build Docker Image
-      # -------------------------------------------------
-      - name: Build Docker Image
-        run: |
-          docker build \
-            -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:${{ github.sha }} \
-            .
-
-      # -------------------------------------------------
-      # Push Docker Image
-      # -------------------------------------------------
-      - name: Push Docker Image
-        run: |
-          docker push \
-            $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:${{ github.sha }}
-
-      # -------------------------------------------------
-      # Deploy to Cloud Run
-      # -------------------------------------------------
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy $SERVICE \
-            --image=$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:${{ github.sha }} \
-            --region=$REGION \
-            --platform=managed \
-            --allow-unauthenticated \
-            --set-env-vars="DATABASE_URL=${{ secrets.DATABASE_URL }},NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }},NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }},GCS_BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }}"
-            
-      # -------------------------------------------------
-      # Show Service URL
-      # -------------------------------------------------
-      - name: Get Service URL
-        run: |
-          gcloud run services describe $SERVICE \
-            --region=$REGION \
-            --format='value(status.url)'
+          curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
