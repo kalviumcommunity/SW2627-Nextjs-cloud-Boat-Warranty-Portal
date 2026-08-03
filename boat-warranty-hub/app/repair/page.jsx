@@ -34,7 +34,7 @@ function RepairContent() {
   const serial = searchParams.get('serial') || '';
 
   const [expandedRows, setExpandedRows] = useState({});
-  const [showMore, setShowMore] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(5);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(Boolean(serial));
   const [error, setError] = useState(null);
@@ -80,7 +80,7 @@ function RepairContent() {
   };
 
   const handleSeeMore = () => {
-    setShowMore((prev) => !prev);
+    setVisibleCount((prev) => prev + 5);
   };
 
   const statusCounts = ['IN_PROGRESS', 'COMPLETED', 'PENDING', 'CANCELLED'].reduce((counts, status) => {
@@ -94,7 +94,7 @@ function RepairContent() {
     Rejected: 'CANCELLED',
   };
   const filtered = filterStatus === 'All' ? records : records.filter((record) => record.repairStatus === filterToStatus[filterStatus]);
-  const visibleRecords = showMore ? filtered : filtered.slice(0, 10);
+  const visibleRecords = filtered.slice(0, visibleCount);
 
   const downloadCsv = () => {
     const headers = ['Serial Number', 'Repair ID', 'Repair Date', 'Issue Reported', 'Status', 'Technician Notes', 'Estimated Completion'];
@@ -234,7 +234,7 @@ function RepairContent() {
             { label: 'Repaired', value: statusCounts.COMPLETED || 0, color: '#16a34a', bg: '#f0fdf4', border: '#dcfce7', filterValue: 'Repaired' },
             { label: 'Pending / Rejected', value: (statusCounts.PENDING || 0) + (statusCounts.CANCELLED || 0), color: '#ca8a04', bg: '#fefce8', border: '#fef08a', filterValue: 'Pending' },
           ].map((card) => (
-            <button key={card.label} onClick={() => setFilterStatus(card.filterValue)} style={{ background: card.bg, borderRadius: '12px', border: `1.5px solid ${filterStatus === card.filterValue ? card.color : card.border}`, padding: '18px 20px', cursor: 'pointer', textAlign: 'left', boxShadow: filterStatus === card.filterValue ? `0 4px 16px ${card.color}22` : 'none' }}>
+            <button key={card.label} onClick={() => { setFilterStatus(card.filterValue); setVisibleCount(5); }} style={{ background: card.bg, borderRadius: '12px', border: `1.5px solid ${filterStatus === card.filterValue ? card.color : card.border}`, padding: '18px 20px', cursor: 'pointer', textAlign: 'left', boxShadow: filterStatus === card.filterValue ? `0 4px 16px ${card.color}22` : 'none' }}>
               <p style={{ margin: 0, fontSize: '0.75rem', color: '#888', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{card.label}</p>
               <p style={{ margin: '6px 0 0', fontSize: '1.8rem', fontWeight: 900, color: card.color }}>{card.value}</p>
             </button>
@@ -244,7 +244,7 @@ function RepairContent() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
           <span style={{ fontSize: '0.8rem', color: '#888', fontWeight: 600 }}>Filter:</span>
           {['All', ...STATUS_OPTIONS].map((status) => (
-            <button key={status} onClick={() => setFilterStatus(status)} style={{ padding: '5px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', border: filterStatus === status ? `1.5px solid ${statusStyle[status]?.color || '#111'}` : '1.5px solid #e8e8e8', background: filterStatus === status ? (statusStyle[status]?.bg || '#111') : '#fff', color: filterStatus === status ? (statusStyle[status]?.color || '#fff') : '#888' }}>{status}</button>
+            <button key={status} onClick={() => { setFilterStatus(status); setVisibleCount(5); }} style={{ padding: '5px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', border: filterStatus === status ? `1.5px solid ${statusStyle[status]?.color || '#111'}` : '1.5px solid #e8e8e8', background: filterStatus === status ? (statusStyle[status]?.bg || '#111') : '#fff', color: filterStatus === status ? (statusStyle[status]?.color || '#fff') : '#888' }}>{status}</button>
           ))}
           <span style={{ marginLeft: 'auto', fontSize: '0.78rem', color: '#aaa' }}>{filtered.length} record{filtered.length !== 1 ? 's' : ''}</span>
         </div>
@@ -403,7 +403,7 @@ function RepairContent() {
           </table>
 
           {/* Table Footer / See More */}
-          {filtered.length > 10 && <div style={{
+          {filtered.length > visibleCount && <div style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -429,16 +429,16 @@ function RepairContent() {
                 <svg 
                   width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                   style={{
-                    transform: showMore ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transform: 'rotate(0deg)',
                     transition: 'transform 0.2s',
                   }}
                 >
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
-                {showMore ? 'Show Less Repairs' : 'See More Repairs'}
+                See More Repairs
               </div>
               <span style={{ fontSize: '0.74rem', color: '#888' }}>
-                {showMore ? 'hide additional rows' : `${filtered.length - 10} more repair record${filtered.length - 10 === 1 ? '' : 's'}`}
+                {`${filtered.length - visibleCount} more repair record${filtered.length - visibleCount === 1 ? '' : 's'}`}
               </span>
             </button>
           </div>}

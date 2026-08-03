@@ -174,7 +174,7 @@ function AdminRepairHistoryContent({ admin }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(Boolean(serial));
   const [error, setError] = useState(null);
-  const [showMore, setShowMore] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(5);
   const [expandedRows, setExpandedRows] = useState({});
   const [modalRecord, setModalRecord] = useState(null);
   const [filterStatus, setFilterStatus] = useState('All');
@@ -205,7 +205,7 @@ function AdminRepairHistoryContent({ admin }) {
   const toggleRow = id => setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
 
   const handleSeeMore = () => {
-    setShowMore(prev => !prev);
+    setVisibleCount(prev => prev + 5);
   };
 
   const downloadCsv = () => {
@@ -272,7 +272,7 @@ function AdminRepairHistoryContent({ admin }) {
   };
 
   const filtered = filterStatus === 'All' ? records : records.filter(r => r.repairStatus === mapFilterToStatus[filterStatus]);
-  const visibleRecords = showMore ? filtered : filtered.slice(0, 10);
+  const visibleRecords = filtered.slice(0, visibleCount);
 
   return (
     <main style={{ background: '#f5f5f5', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif', display: 'flex', flexDirection: 'column' }}>
@@ -348,7 +348,7 @@ function AdminRepairHistoryContent({ admin }) {
           ].map((card, i) => (
             <div
               key={i}
-              onClick={() => setFilterStatus(card.filterVal)}
+              onClick={() => { setFilterStatus(card.filterVal); setVisibleCount(5); }}
               style={{
                 background: card.bg, borderRadius: '12px',
                 border: `1.5px solid ${card.highlight ? card.color : card.border}`,
@@ -369,7 +369,7 @@ function AdminRepairHistoryContent({ admin }) {
           {['All', ...STATUS_OPTIONS].map(s => (
             <button
               key={s}
-              onClick={() => setFilterStatus(s)}
+              onClick={() => { setFilterStatus(s); setVisibleCount(5); }}
               style={{
                 padding: '5px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
                 border: filterStatus === s ? `1.5px solid ${statusStyle[s]?.color || '#111'}` : '1.5px solid #e8e8e8',
@@ -528,18 +528,18 @@ function AdminRepairHistoryContent({ admin }) {
           </table>
 
           {/* See More */}
-          {filtered.length > 10 && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '24px', borderTop: '1px solid #f0f0f0', marginTop: '16px' }}>
+          {filtered.length > visibleCount && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '24px', borderTop: '1px solid #f0f0f0', marginTop: '16px' }}>
             <button
               onClick={handleSeeMore}
               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px 16px' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem', fontWeight: 700, color: '#111' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: showMore ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: 'rotate(0deg)', transition: 'transform 0.2s' }}>
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
-                {showMore ? 'Show Less Repairs' : 'See More Repairs'}
+                See More Repairs
               </div>
-              <span style={{ fontSize: '0.74rem', color: '#888' }}>{showMore ? 'hide additional rows' : `${filtered.length - 10} more repair record${filtered.length - 10 === 1 ? '' : 's'}`}</span>
+              <span style={{ fontSize: '0.74rem', color: '#888' }}>{`${filtered.length - visibleCount} more repair record${filtered.length - visibleCount === 1 ? '' : 's'}`}</span>
             </button>
           </div>}
         </div>
