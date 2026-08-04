@@ -47,7 +47,13 @@ export async function POST(request,context){
             data:product
         },{status:200})
     }catch(error){
-        logger.error({ error }, "Failed to upload warranty PDF");
+        logger.error(
+            {
+                message: error.message,
+                stack: error.stack,
+            },
+            "Failed to upload warranty PDF"
+        );
         return NextResponse.json({
             success:false,
             message:error.message
