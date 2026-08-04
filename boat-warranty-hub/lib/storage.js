@@ -41,20 +41,21 @@ function getStorage() {
     storageOptions.projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
   }
 
-  // Vercel / Cloud environments
+  // Vercel Serverless Runtime Environment
   if (process.env.GCP_SERVICE_ACCOUNT) {
     try {
-      const credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT);
+      // Decode the base64 string back into readable raw JSON context string
+      const decodedJson = Buffer.from(process.env.GCP_SERVICE_ACCOUNT, 'base64').toString('utf-8');
+      const credentials = JSON.parse(decodedJson);
       
       storageOptions.credentials = {
         client_email: credentials.client_email,
-        // Replace escaped literal newlines if Vercel treats them as raw strings
-        private_key: credentials.private_key.replace(/\\n/g, '\n'),
+        private_key: credentials.private_key,
       };
     } catch (error) {
-      console.error("Failed to parse GCP_SERVICE_ACCOUNT env variable:", error);
+      console.error("Critical failure parsing service account options:", error);
     }
-  }
+  } 
   // Local development
   else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
