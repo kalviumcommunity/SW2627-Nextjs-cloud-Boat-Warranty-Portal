@@ -10,11 +10,20 @@ function getStorage() {
     storageOptions.projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
   }
 
-  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  // Vercel / Cloud environments
+  if (process.env.GCP_SERVICE_ACCOUNT) {
+    storageOptions.credentials = JSON.parse(
+      process.env.GCP_SERVICE_ACCOUNT
+    );
+  }
+
+  // Local development
+  else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
     storageOptions.keyFilename = path.isAbsolute(credentialsPath)
       ? credentialsPath
-      : path.resolve(/* turbopackIgnore: true */ process.cwd(), credentialsPath);
+      : path.resolve(process.cwd(), credentialsPath);
   }
 
   return new Storage(storageOptions);
