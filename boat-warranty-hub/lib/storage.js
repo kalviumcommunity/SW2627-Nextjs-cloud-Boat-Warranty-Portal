@@ -25,6 +25,11 @@ function getStorage() {
       ? credentialsPath
       : path.resolve(process.cwd(), credentialsPath);
   }
+  console.log({
+    hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+    hasBucket: !!process.env.GOOGLE_CLOUD_BUCKET_NAME,
+    hasServiceAccount: !!process.env.GCP_SERVICE_ACCOUNT,
+  });
 
   return new Storage(storageOptions);
 }
