@@ -3,37 +3,6 @@ import path from "path";
 
 const bucketName = process.env.GOOGLE_CLOUD_BUCKET_NAME;
 
-// function getStorage() {
-//   const storageOptions = {};
-
-//   if (process.env.GOOGLE_CLOUD_PROJECT_ID) {
-//     storageOptions.projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
-//   }
-
-//   // Vercel / Cloud environments
-//   if (process.env.GCP_SERVICE_ACCOUNT) {
-//     storageOptions.credentials = JSON.parse(
-//       process.env.GCP_SERVICE_ACCOUNT
-//     );
-//   }
-
-//   // Local development
-//   else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-//     const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-
-//     storageOptions.keyFilename = path.isAbsolute(credentialsPath)
-//       ? credentialsPath
-//       : path.resolve(process.cwd(), credentialsPath);
-//   }
-//   console.log({
-//     hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
-//     hasBucket: !!process.env.GOOGLE_CLOUD_BUCKET_NAME,
-//     hasServiceAccount: !!process.env.GCP_SERVICE_ACCOUNT,
-//   });
-
-//   return new Storage(storageOptions);
-// }
-
 function getStorage() {
   const storageOptions = {};
 
