@@ -356,6 +356,10 @@ PDF Upload
 
 Upload warranty documents
 
+Diagnostics & Policy Engine
+
+Automated warranty rule evaluation, telemetry diagnostics, and JavaScript hoisting introspection engine
+
 Responsive UI
 
 Desktop, tablet and mobile support
@@ -688,6 +692,36 @@ POST
 
 Upload Warranty PDF
 
+GET
+
+/api/diagnostics/system
+
+System Health & Telemetry Diagnostics
+
+GET
+
+/api/diagnostics/hoisting-engine
+
+JavaScript Hoisting Execution Analysis & Benchmarks
+
+POST
+
+/api/diagnostics/hoisting-engine
+
+Hoisting-Driven Warranty Telemetry Evaluation
+
+GET
+
+/api/diagnostics/rules
+
+Registered Diagnostic Rules
+
+POST
+
+/api/diagnostics/rules
+
+Policy Rule Validation
+
 16. Application Workflow
 
 Customer
@@ -876,6 +910,10 @@ Pino
 Security
 
 bcrypt, Zod, Environment Variables
+
+Core JS & Execution Engine
+
+Function Declaration Hoisting, Variable Hoisting (var vs let/const TDZ), Mutual Recursion, Top-Down Declarative Pipelines, Execution Contexts
 
 22. Validation Checklist
 

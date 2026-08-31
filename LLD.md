@@ -117,3 +117,35 @@ Vercel
      │
      ▼
 Users Access Website
+
+Diagnostics & Hoisting Execution Engine Architecture
+
+1. Hoisting Pipeline Orchestration (Top-Down Declarative Flow)
+   runFullSystemDiagnostics() / evaluateWarrantyDiagnostics()
+                   │
+                   ├──> collectSystemMetrics() [Hoisted Worker]
+                   ├──> runEngineSelfCheck() [Hoisted Worker]
+                   ├──> calculateOverallHealthScore() [Hoisted Worker]
+                   └──> formatDiagnosticReport() [Hoisted Worker]
+
+2. Execution Context & Hoisting Introspection Module
+   analyzeHoistingMechanics()
+                   │
+                   ├──> inspectFunctionHoisting() (Complete body hoisted to Variable Environment)
+                   ├──> inspectVarHoisting() (var initialized to undefined in Creation Phase)
+                   ├──> inspectTemporalDeadZone() (let, const, class uninitialized in TDZ)
+                   ├──> inspectScopeShadowing() (Local scope shadowing resolution)
+                   └──> inspectMutualRecursionPipeline() (stepPing <--> stepPong mutual recursion)
+
+3. Warranty Policy Rule Tree
+   - RULE_SERIAL_FORMAT: Minimum 4 characters format check
+   - RULE_WARRANTY_VALIDITY: Active status and expiration date validation
+   - RULE_REPAIR_FREQUENCY: Anomaly check on repair volume (threshold <= 5)
+   - RULE_CLAIM_THRESHOLD: Financial automated threshold validation (<= $10,000)
+
+4. Diagnostic API Handlers
+   - GET /api/diagnostics/hoisting-engine: Introspection report & benchmarks
+   - POST /api/diagnostics/hoisting-engine: Evaluates telemetry/claim payload
+   - GET /api/diagnostics/system: System metrics & health scoring (?includeDetails=true)
+   - GET /api/diagnostics/rules: Rule catalog
+   - POST /api/diagnostics/rules: Rule evaluation engine
